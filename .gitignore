@@ -1,27 +1,51 @@
-# Gradle
+# Java / Spring Boot / Gradle
 .gradle/
 build/
-!gradle-wrapper.jar
-!gradle-wrapper.properties
+out/
+!gradle/wrapper/gradle-wrapper.jar
+
+**/build/
+**/.gradle/
+
+*.iml
+*.ipr
+*.iws
+.idea/
+.vscode/
+
+# Logs
+*.log
+
+# Spring Boot
+*.pid
+*.tmp
 
 # Kotlin
 *.class
-*.jar
-*.war
-*.log
+.kotlin/
+.kotlin-build/
 
-# IntelliJ / IDE
-.idea/
-*.iml
-out/
+# Node / Vite / React
+node_modules/
+dist/
+dist-ssr/
+.vite/
+coverage/
 
-# Spring Boot
-application-local.properties
-application-dev.properties
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# Logs
-logs/
-*.log
+.env
+.env.local
+.env.*.local
 
-# Test output
-test-results/
+# OS files
+.DS_Store
+Thumbs.db
+
+# Misc
+*.swp
+*.swo
+*~
