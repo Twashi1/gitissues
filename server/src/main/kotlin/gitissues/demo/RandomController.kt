@@ -6,9 +6,6 @@ import kotlin.random.Random
 
 @RestController
 class RandomController {
-
     @GetMapping("/api/random")
-    fun randomNumber(): Map<String, Int> {
-        return mapOf("value" to Random.nextInt(0, 100))
-    }
+    fun randomNumber(): Map<String, Int> = mapOf("value" to Random.nextInt(0, 100))
 }
