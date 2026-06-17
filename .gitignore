@@ -49,3 +49,5 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+server/src/main/resources/static/*
