@@ -1,7 +1,6 @@
 logging:
   level:
     org.flywaydb: DEBUG
-    org.springframework.boot.autoconfigure: DEBUG
 
 spring:
   datasource:

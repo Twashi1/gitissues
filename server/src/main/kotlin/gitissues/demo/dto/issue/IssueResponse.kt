@@ -1,4 +1,6 @@
-package gitissues.demo.issue
+package gitissues.demo.dto.issue
+
+import gitissues.demo.issue.IssueStatus
 
 data class IssueResponse(
     val id: Long,

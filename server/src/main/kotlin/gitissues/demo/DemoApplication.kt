@@ -11,9 +11,7 @@ class DemoApplication {
     @Bean
     fun commandLineRunner(ctx: ApplicationContext) =
         CommandLineRunner {
-            println("Let's inspect the beans provided by Spring Boot:")
-            val beanNames = ctx.beanDefinitionNames
-            beanNames.sorted().forEach { println(it) }
+            println("Startup")
         }
 }
 
