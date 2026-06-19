@@ -1,13 +1,14 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
 import AppLayout from './components/Layout/AppLayout'
-import RandomButton from './components/RandomButton'
 import NewIssue from './components/NewIssue/NewIssue'
 import IssueList from './components/IssueList/IssueList'
 
-import { getIssues } from './services/issues'
+import { getIssues, deleteIssue } from './services/issues'
 
 function App() {
+  const queryClient = useQueryClient()
+
   const {
     data: issues = [],
     isLoading,
@@ -15,6 +16,15 @@ function App() {
     queryKey: ['issues'],
     queryFn: getIssues,
     refetchInterval: 5000,
+  })
+
+  const mutation = useMutation({
+    mutationFn: deleteIssue,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['issues']
+      })
+    }
   })
 
   return (
@@ -28,7 +38,6 @@ function App() {
               </h1>
 
               <div className="flex flex-col gap-4">
-                <RandomButton />
                 <NewIssue />
               </div>
             </section>
@@ -38,7 +47,7 @@ function App() {
                 {isLoading ? (
                       <p className="text-slate-400">Loading...</p>
                 ) : (
-                  <IssueList issues={issues} />
+                  <IssueList issues={issues} onDelete={(id: number) => mutation.mutate(id)} />
                 )}
               </div>
             </section>

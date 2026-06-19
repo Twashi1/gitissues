@@ -64,22 +64,6 @@ export default function WorleyBackground() {
     const resolutionLocation = gl.getUniformLocation(program, 'u_resolution')
     const timeLocation = gl.getUniformLocation(program, 'u_Time')
 
-
-// uniform float u_Scale = 1.0;
-// uniform uint  u_Seed = 0;
-// uniform float u_AngularVelocity = 0.5;
-// uniform float u_Time = 0.0;
-// uniform float u_CellularDensity = 3.0;
-// uniform float u_Sharpness = 5.0;
-// uniform float u_ColorGamma = 1.75; 
-// uniform float u_LuminosityOffset = 0.5;
-// uniform vec3  u_BaseColor = vec3(0.9, 0.1, 0.1);
-// uniform float u_PI = 3.14159265358;
-//
-// uniform vec2 u_resolution;
-// uniform float u_Pixelation = 40.0;
-// uniform float u_LessPixelation = 160.0;
-
     function resize() {
       if (!canvas) return
 
@@ -97,7 +81,7 @@ export default function WorleyBackground() {
     function render(now: number) {
       if (!gl) return
 
-      const time = (now - start) * 0.001
+      const time = (now - start) * 0.01
 
       gl.clear(gl.COLOR_BUFFER_BIT)
 

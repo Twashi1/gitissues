@@ -14,7 +14,7 @@ export default function AppLayout({
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
 
-        <main className="flex-1 p-6 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto">
           <div className="relative w-full min-h-screen overflow-hidden">
             <WorleyBackground />
 

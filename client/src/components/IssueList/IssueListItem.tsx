@@ -6,9 +6,10 @@ import clsx from 'clsx'
 
 type Props = {
   issue: Issue
+  onDelete: (id: number) => void
 }
 
-export default function IssueListItem({ issue }: Props) {
+export default function IssueListItem({ issue, onDelete }: Props) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -16,6 +17,7 @@ export default function IssueListItem({ issue }: Props) {
       <IssueButton
         issue={issue}
         onClick={() => setOpen(v => !v)}
+        onDelete={onDelete}
       />
 
       {/* always mounted */}

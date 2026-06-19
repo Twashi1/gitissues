@@ -25,3 +25,13 @@ export async function getIssues(): Promise<Issue[]> {
   
   return response.json() as Promise<Issue[]>
 }
+
+export async function deleteIssue(id: number): Promise<void> {
+  const response = await fetch(`/api/issue/${id}`, {
+    method: 'DELETE',
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to delete issue')
+  }
+}

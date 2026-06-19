@@ -15,13 +15,6 @@ body {
     Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
 }
 
-/* optional: improve input defaults */
-input,
-textarea,
-button {
-  font: inherit;
-}
-
 /* optional: remove focus outline noise and rely on Tailwind focus rings */
 :focus {
   outline: none;

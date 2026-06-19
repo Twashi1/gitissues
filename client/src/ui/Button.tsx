@@ -1,5 +1,6 @@
 import { focusRing } from "./focusRing.ts"
 import clsx from 'clsx'
+import { twMerge } from 'tailwind-merge'
 import type { ButtonHTMLAttributes } from 'react'
 
 type Variant = 'primary' | 'secondary' | 'danger'
@@ -16,7 +17,7 @@ export default function Button({
   return (
     <button
       type='button'
-      className={clsx(
+      className={twMerge(clsx(
         'px-3 py-2 rounded-md shadow-sm text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-800',
         focusRing,
         {
@@ -25,7 +26,7 @@ export default function Button({
           'bg-red-600 text-white hover:bg-red-500': variant === 'danger',
         },
         className
-      )}
+      ))}
       {...props}
     />
   )

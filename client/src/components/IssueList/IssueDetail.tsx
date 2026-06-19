@@ -7,7 +7,7 @@ type Props = {
 
 export default function IssueDetail({ issue, onClick }: Props) {
   return (
-    <div onClick={onClick} className="rounded-md bg-slate-800 p-3 text-sm text-slate-200 shadow">
+    <div onClick={onClick} className="rounded-md bg-slate-800 p-3 text-sm text-slate-200 opacity-90 shadow">
       <div className="space-y-2">
         <div>
           <p className="text-xs text-slate-400">Title</p>

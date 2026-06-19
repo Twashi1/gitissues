@@ -2,14 +2,15 @@ precision mediump float;
 
 const float u_Scale = 0.5;
 const int u_Seed = 0;
-const float u_AngularVelocity = 2.0;
+const float u_AngularVelocity = 0.05;
 uniform float u_Time;
 const float u_CellularDensity = 4.0;
-const float u_Sharpness = 4.0;
-const float u_ColorGamma = 1.35; 
+const float u_Sharpness = 3.0;
+const float u_ColorGamma = 1.75; 
 const float u_LuminosityOffset = 0.5;
 const vec3  u_BaseColor = vec3(0.3, 0.3, 0.5);
 const float u_PI = 3.14159265358;
+const float u_borderSize = 0.0;
 
 uniform vec2 u_resolution;
 const float u_Pixelation = 1000.0;
@@ -22,13 +23,13 @@ vec2 random2(vec2 p) {
 vec2 rotated_random(vec2 p, vec2 matrix_left, vec2 matrix_right) {
     const vec2 pivot = vec2(0.5, 0.5);
 
-    vec2 random = random2(p) * 0.5 - pivot;
+    vec2 random = random2(p) - pivot;
     vec2 rotated = vec2(0.0, 0.0);
     rotated.x = random.x * matrix_left.x + random.y * matrix_right.x;
     rotated.y = random.x * matrix_left.y + random.y * matrix_right.y;
     rotated += pivot;
 
-    return random;
+    return rotated;
 }
 
 float random_float (float h) {
@@ -62,8 +63,8 @@ vec4 get_fluid_texture() {
     vec3 result = vec3(1000.0, 0.0, 0.0);
 
     // Iterate each surrounding cell
-    for (int y = -1; y <= 1; y++) {
-        for (int x = -1; x <= 1; x++) {
+    for (int y = -2; y <= 2; y++) {
+        for (int x = -2; x <= 2; x++) {
             vec2 lattice_offset = vec2(x, y);
             vec2 random_point = rotated_random(lattice_offset + current_poll_lattice, matrix_left, matrix_right);
 
@@ -78,6 +79,12 @@ vec4 get_fluid_texture() {
     result.x = pow(result.x, u_Sharpness);
 
     vec3 result_color = pow(u_BaseColor * (result.x + u_LuminosityOffset), vec3(u_ColorGamma));
+
+    float dist_to_border = max(abs(v_texCoord.x - 0.5), abs(v_texCoord.y - 0.5));
+
+    if (dist_to_border > (0.5 - u_borderSize)) {
+      alpha = smoothstep(0.0, 1.0, (0.5 - dist_to_border) / u_borderSize);
+    }
 
     return vec4(result_color.xyz, alpha);
 }

@@ -37,6 +37,15 @@ class IssueService(
     }
 
     @Transactional
+    fun delete(id: Long) {
+        if (!repo.existsById(id)) {
+            throw NoSuchElementException("Issue $id not found")
+        }
+
+        repo.deleteById(id)
+    }
+
+    @Transactional
     fun patch(
         id: Long,
         req: IssuePatchRequest,
