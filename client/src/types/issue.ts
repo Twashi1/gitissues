@@ -20,3 +20,14 @@ export type IssueCreateRequest = {
   description: string
   status: IssueStatus
 }
+
+export type IssuePatchRequest = {
+  title?: string
+  description?: string
+  status?: IssueStatus
+}
+
+export type IssuePatchVariables = {
+  id: number
+  request: IssuePatchRequest
+}

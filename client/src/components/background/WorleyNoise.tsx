@@ -28,9 +28,6 @@ export default function WorleyBackground() {
       return shader
     }
 
-    console.log(worleyVert)
-    console.log(worleyFrag)
-
     const vertexShader = compileShader(gl.VERTEX_SHADER, worleyVert)
     const fragmentShader = compileShader(gl.FRAGMENT_SHADER, worleyFrag)
 

@@ -13,6 +13,8 @@ import org.springframework.web.server.ResponseStatusException
 class IssueService(
     private val repo: IssueRepository,
 ) {
+    private val log = LoggerFactory.getLogger(IssueService::class.java)
+
     fun all(): List<IssueResponse> = repo.findAll().map(Issue::toResponse)
 
     fun get(id: Long): IssueResponse =
@@ -50,6 +52,8 @@ class IssueService(
         id: Long,
         req: IssuePatchRequest,
     ): IssueResponse {
+        log.info("Patch request: {}", req)
+
         val issue =
             repo
                 .findById(id)

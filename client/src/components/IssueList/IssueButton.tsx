@@ -18,7 +18,7 @@ export default function IssueButton({ issue, onClick, onDelete }: Props) {
             e.stopPropagation()
             onDelete(issue.id)
           }}
-          className="px-2 py-1 bg-slate-800 text-red-700 text-2xl"
+          className="px-2 py-1 text-red-700 text-2xl"
           aria-label={`Delete ${issue.title}`}
         >
           ×

@@ -24,7 +24,7 @@ export default function IssueListItem({ issue, onDelete }: Props) {
       <div
         className={clsx(
           'overflow-hidden transition-all duration-200 ease-out',
-          open ? 'max-h-40 opacity-100 mt-2' : 'max-h-0 opacity-0 mt-0'
+          open ? 'h-fit opacity-100 mt-2' : 'max-h-0 opacity-0 mt-0'
         )}
       >
         <div className="pt-2">
