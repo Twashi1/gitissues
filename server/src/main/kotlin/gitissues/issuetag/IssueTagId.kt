@@ -1,4 +1,4 @@
-package gitissues.demo.issue
+package gitissues.issuetag
 
 import java.io.Serializable
 

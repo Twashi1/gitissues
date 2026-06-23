@@ -1,8 +1,8 @@
-package gitissues.demo.issue
+package gitissues.issue
 
-import gitissues.demo.dto.issue.IssueCreateRequest
-import gitissues.demo.dto.issue.IssuePatchRequest
-import gitissues.demo.dto.issue.IssueResponse
+import gitissues.dto.issue.IssueCreateRequest
+import gitissues.dto.issue.IssuePatchRequest
+import gitissues.dto.issue.IssueResponse
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping

@@ -1,8 +1,8 @@
-package gitissues.demo.issue
+package gitissues.issuetag
 
 import jakarta.persistence.*
-import gitissues.demo.dto.issue.IssueTagResponse
-import gitissues.demo.issue.IssueTagId
+import gitissues.dto.issuetag.IssueTagResponse
+import gitissues.issuetag.IssueTagId
 import tools.jackson.databind.ObjectMapper
 
 @Entity

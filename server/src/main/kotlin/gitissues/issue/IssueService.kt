@@ -1,8 +1,8 @@
-package gitissues.demo.issue
+package gitissues.issue
 
-import gitissues.demo.dto.issue.IssueCreateRequest
-import gitissues.demo.dto.issue.IssuePatchRequest
-import gitissues.demo.dto.issue.IssueResponse
+import gitissues.dto.issue.IssueCreateRequest
+import gitissues.dto.issue.IssuePatchRequest
+import gitissues.dto.issue.IssueResponse
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus

@@ -1,6 +1,6 @@
-package gitissues.demo.issue
+package gitissues.issuetag
 
-import gitissues.demo.dto.issue.IssueTagResponse
+import gitissues.dto.issuetag.IssueTagResponse
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable

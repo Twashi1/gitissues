@@ -1,7 +1,7 @@
-package gitissues.demo.issue
+package gitissues.issuetag
 
-import gitissues.demo.issue.IssueTag
-import gitissues.demo.issue.IssueTagId
+import gitissues.issuetag.IssueTag
+import gitissues.issuetag.IssueTagId
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface IssueTagRepository : JpaRepository<IssueTag, IssueTagId> {

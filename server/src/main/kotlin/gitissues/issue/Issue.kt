@@ -1,7 +1,7 @@
-package gitissues.demo.issue
+package gitissues.issue
 
 import jakarta.persistence.*
-import gitissues.demo.dto.issue.IssueResponse
+import gitissues.dto.issue.IssueResponse
 
 @Entity
 @Table(name = "issues")

@@ -1,4 +1,4 @@
-package gitissues.demo
+package gitissues
 
 import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -7,7 +7,7 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 
 @SpringBootApplication
-class DemoApplication {
+class GitIssuesApplication {
     @Bean
     fun commandLineRunner(ctx: ApplicationContext) =
         CommandLineRunner {
@@ -16,5 +16,5 @@ class DemoApplication {
 }
 
 fun main(args: Array<String>) {
-    runApplication<DemoApplication>(*args)
+    runApplication<GitIssuesApplication>(*args)
 }

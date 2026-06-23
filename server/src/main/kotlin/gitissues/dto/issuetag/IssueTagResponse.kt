@@ -1,4 +1,4 @@
-package gitissues.demo.dto.issue
+package gitissues.dto.issuetag
 
 import tools.jackson.databind.JsonNode
 

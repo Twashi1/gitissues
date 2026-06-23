@@ -1,6 +1,6 @@
-package gitissues.demo.issue
+package gitissues.issuetag
 
-import gitissues.demo.dto.issue.IssueTagResponse
+import gitissues.dto.issuetag.IssueTagResponse
 import org.springframework.stereotype.Service
 import tools.jackson.databind.ObjectMapper
 

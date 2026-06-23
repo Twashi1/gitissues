@@ -1,4 +1,4 @@
-package gitissues.demo.dto.issue
+package gitissues.dto.issue
 
 data class IssuePatchRequest(
     val title: String? = null,

@@ -1,4 +1,4 @@
-package gitissues.demo
+package gitissues
 
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus

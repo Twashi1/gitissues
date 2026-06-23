@@ -1,4 +1,4 @@
-package gitissues.demo.issue
+package gitissues.issue
 
 import org.springframework.data.jpa.repository.JpaRepository
 

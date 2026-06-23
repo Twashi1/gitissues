@@ -1,4 +1,4 @@
-package gitissues.demo.dto.issue
+package gitissues.dto.tag
 
 data class TagResponse(
     val id: Long,

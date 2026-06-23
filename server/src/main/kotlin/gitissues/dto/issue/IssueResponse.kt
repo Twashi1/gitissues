@@ -1,4 +1,4 @@
-package gitissues.demo.dto.issue
+package gitissues.dto.issue
 
 data class IssueResponse(
     val id: Long,
