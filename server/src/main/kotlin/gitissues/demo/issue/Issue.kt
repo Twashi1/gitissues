@@ -1,7 +1,6 @@
 package gitissues.demo.issue
 
 import jakarta.persistence.*
-
 import gitissues.demo.dto.issue.IssueResponse
 
 @Entity
@@ -18,15 +17,10 @@ class Issue(
 
   @Column(nullable = false, length=5000)
   var description: String,
-
-  @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
-  var status: IssueStatus
 )
 
 fun Issue.toResponse() = IssueResponse(
     id = id,
     title = title,
     description = description,
-    status = status
 )

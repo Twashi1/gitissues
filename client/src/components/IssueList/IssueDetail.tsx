@@ -46,7 +46,7 @@ export default function IssueDetail({ issue, onClick }: Props) {
     <div onClick={onClick} className="rounded-md bg-slate-800 p-3 text-sm text-slate-200 opacity-90 shadow">
       <div className="space-y-2">
         <div>
-          <p className="p-2 text-xs text-slate-400">Title</p>
+          <p className="p-2 text-sm text-slate-400">Title</p>
           <Input
             variant="secondary"
             placeholder="Title"
@@ -59,7 +59,7 @@ export default function IssueDetail({ issue, onClick }: Props) {
         </div>
 
         <div>
-          <p className="p-2 text-xs text-slate-400">Description</p>
+          <p className="p-2 text-sm text-slate-400">Description</p>
           <TextArea
             variant="secondary"
             placeholder="Description"

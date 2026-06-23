@@ -15,7 +15,7 @@ class IssueService(
 ) {
     private val log = LoggerFactory.getLogger(IssueService::class.java)
 
-    fun all(): List<IssueResponse> = repo.findAll().map(Issue::toResponse)
+    fun all(): List<IssueResponse> = repo.findAllByOrderByIdDesc().map(Issue::toResponse)
 
     fun get(id: Long): IssueResponse =
         repo
@@ -32,7 +32,6 @@ class IssueService(
             Issue(
                 title = req.title,
                 description = req.description,
-                status = req.status,
             )
 
         return repo.save(issue).toResponse()
@@ -66,7 +65,6 @@ class IssueService(
 
         issue.title = req.title ?: issue.title
         issue.description = req.description ?: issue.description
-        issue.status = req.status ?: issue.status
 
         return issue.toResponse()
     }
