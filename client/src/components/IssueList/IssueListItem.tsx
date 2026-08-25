@@ -1,5 +1,5 @@
-import IssueButton from './IssueButton.tsx'
-import IssueDetail from './IssueDetail.tsx'
+import IssueButton from './IssueButton'
+import IssueDetail from './IssueDetail'
 import type { Issue } from '../../types/issue'
 import { useState } from 'react'
 import clsx from 'clsx'

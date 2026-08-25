@@ -19,6 +19,7 @@ export type IssueCreateRequest = {
   title: string
   description: string
   status: IssueStatus
+  listId: number
 }
 
 export type IssuePatchRequest = {

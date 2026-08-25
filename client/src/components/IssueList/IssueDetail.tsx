@@ -1,9 +1,9 @@
 import type { Issue, IssuePatchRequest, IssuePatchVariables } from '../../types/issue'
-import TextArea from '../../ui/TextArea.tsx'
-import Input from '../../ui/Input.tsx'
+import TextArea from '../../ui/TextArea'
+import Input from '../../ui/Input'
 import { useState, useEffect } from 'react'
 import { useQueryClient, useMutation } from '@tanstack/react-query'
-import { patchIssue } from '../../services/issues.ts'
+import { patchIssue } from '../../services/issues'
 
 type Props = {
   issue: Issue
@@ -43,7 +43,7 @@ export default function IssueDetail({ issue, onClick }: Props) {
   }
 
   return (
-    <div onClick={onClick} className="rounded-md bg-slate-800 p-3 text-sm text-slate-200 opacity-90 shadow">
+    <div onClick={onClick} className="rounded-md bg-slate-800 p-3 text-sm text-slate-200 border border-slate-700 shadow">
       <div className="space-y-2">
         <div>
           <p className="p-2 text-sm text-slate-400">Title</p>

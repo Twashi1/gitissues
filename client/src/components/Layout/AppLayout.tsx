@@ -1,6 +1,6 @@
 import Header from './Header'
 import Sidebar from './Sidebar'
-import WorleyBackground from '../background/WorleyNoise.tsx'
+import WorleyBackground from '../background/WorleyNoise'
 
 export default function AppLayout({
   children,
@@ -15,7 +15,7 @@ export default function AppLayout({
         <Sidebar />
 
         <main className="flex-1 overflow-y-auto">
-          <div className="relative w-full min-h-screen overflow-hidden">
+          <div className="relative w-full min-h-screen">
             <WorleyBackground />
 
             <div className="relative z-10">

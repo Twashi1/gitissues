@@ -51,3 +51,5 @@ Thumbs.db
 *~
 
 server/src/main/resources/static/*
+graphify-out
+.claude

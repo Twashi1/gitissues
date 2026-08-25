@@ -16,13 +16,14 @@ export async function createIssue(data: IssueCreateRequest): Promise<Issue> {
   return response.json() as Promise<Issue>
 }
 
-export async function getIssues(): Promise<Issue[]> {
-  const response = await fetch('/api/issue')
+export async function getIssues(listId?: number): Promise<Issue[]> {
+  const url = listId ? `/api/issue?listId=${listId}` : '/api/issue'
+  const response = await fetch(url)
 
   if (!response.ok) {
     throw new Error('Failed to fetch issues')
   }
-  
+
   return response.json() as Promise<Issue[]>
 }
 

@@ -19,7 +19,7 @@ export default function Input({
   return (
     <input
       className={twMerge(clsx(
-        'w-full p-2 rounded-md shadow-sm text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed disable:hover:bg-slate-800 focus:outline-none transition',
+        'w-full p-2 rounded-md shadow-sm text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed disable:hover:bg-slate-800 focus:outline-none transition border border-slate-800',
         focusRing,
         {
           'bg-slate-600 border-slate-500 text-white hover:bg-slate-500': variant === 'primary',
