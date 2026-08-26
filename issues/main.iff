@@ -2,3 +2,4 @@ Add borders to all buttons/UI elements :: @ui $1 #todo created:2026-08-23 priori
 Server interacts with library to create IFF files :: @server $2 #todo created:2026-08-25 priority:medium;
 Create lists and organise issues into lists :: @ui $3 #todo created:2026-08-25 priority:medium;
 Enum selection for status/nature :: @ui $4 #todo created:2026-08-25 priority:medium;
+Shader code duplication between dev page and background component :: @ui $5 #todo created:2026-08-25 priority:low;

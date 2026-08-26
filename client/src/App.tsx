@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Issue } from './types/issue'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 
 import AppLayout from './components/Layout/AppLayout'
 import IssueList from './components/IssueList/IssueList'
+import ShaderDevPage from './pages/ShaderDevPage'
 
 import { getIssues, deleteIssue } from './services/issues'
 import { getIssueLists, createIssueList } from './services/issueLists'
@@ -137,72 +139,80 @@ function App() {
   }
 
   return (
-    <>
+    <BrowserRouter>
       <AppLayout>
         <div className="text-slate-100">
           <div className="flex-1 px-6 py-10 space-y-10 min-h-0">
-            <section id="issue-lists" className="mb-6">
-              <div ref={scrollRef} className="flex gap-4 items-start overflow-x-auto pb-4 w-full">
-                {/* Map over issue lists */}
-                {issueLists.map(list => (
-                  <IssueList
-                    key={list.id}
-                    listId={list.id}
-                    title={list.title}
-                    issues={issuesByListId[list.id] || []}
-                    onUpdateTitle={handleUpdateListTitle}
-                    onDeleteList={handleDeleteList}
-                    onDeleteIssue={handleDeleteIssue}
-                    onCreateIssue={handleCreateIssue}
-                  />
-                ))}
-
-                {/* Button to create new list */}
-                <div className="flex-shrink-0">
-                  <button
-                    onClick={() => setShowNewListForm(true)}
-                    className="mb-2 px-4 py-2 bg-slate-600 text-slate-100 hover:bg-slate-500 rounded whitespace-nowrap"
-                  >
-                    New List
-                  </button>
-                  {showNewListForm && (
-                    <form onSubmit={handleCreateList} className="flex gap-2">
-                      <input
-                        type="text"
-                        value={newListTitle}
-                        onChange={(e) => setNewListTitle(e.target.value)}
-                        placeholder="List title"
-                        className="px-3 py-2 border border-slate-600 rounded bg-slate-800 text-slate-100"
-                        autoFocus
+            <Routes>
+              <Route path="/" element={
+                <section id="issue-lists" className="mb-6">
+                  <div ref={scrollRef} className="flex gap-4 items-start overflow-x-auto pb-4 w-full">
+                    {/* Map over issue lists */}
+                    {issueLists.map(list => (
+                      <IssueList
+                        key={list.id}
+                        listId={list.id}
+                        title={list.title}
+                        issues={issuesByListId[list.id] || []}
+                        onUpdateTitle={handleUpdateListTitle}
+                        onDeleteList={handleDeleteList}
+                        onDeleteIssue={handleDeleteIssue}
+                        onCreateIssue={handleCreateIssue}
                       />
+                    ))}
+
+                    {/* Button to create new list */}
+                    <div className="flex-shrink-0">
                       <button
-                        type="submit"
-                        disabled={creatingList}
-                        className="px-4 py-2 bg-slate-600 text-slate-100 hover:bg-slate-500 rounded whitespace-nowrap"
+                        onClick={() => setShowNewListForm(true)}
+                        className="mb-2 px-4 py-2 bg-slate-600 text-slate-100 hover:bg-slate-500 rounded whitespace-nowrap"
                       >
-                        {creatingList ? 'Creating...' : 'Create'}
+                        New List
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setNewListTitle('');
-                          setShowNewListForm(false);
-                        }}
-                        className="ml-2 px-4 py-2 bg-slate-600 text-slate-100 hover:bg-slate-500 rounded whitespace-nowrap"
-                      >
-                        Cancel
-                      </button>
-                    </form>
-                  )}
-                </div>
-              </div>
-            </section>
+                      {showNewListForm && (
+                        <form onSubmit={handleCreateList} className="flex gap-2">
+                          <input
+                            type="text"
+                            value={newListTitle}
+                            onChange={(e) => setNewListTitle(e.target.value)}
+                            placeholder="List title"
+                            className="px-3 py-2 border border-slate-600 rounded bg-slate-800 text-slate-100"
+                            autoFocus
+                          />
+                          <button
+                            type="submit"
+                            disabled={creatingList}
+                            className="px-4 py-2 bg-slate-600 text-slate-100 hover:bg-slate-500 rounded whitespace-nowrap"
+                          >
+                            {creatingList ? 'Creating...' : 'Create'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setNewListTitle('');
+                              setShowNewListForm(false);
+                            }}
+                            className="ml-2 px-4 py-2 bg-slate-600 text-slate-100 hover:bg-slate-500 rounded whitespace-nowrap"
+                          >
+                            Cancel
+                          </button>
+                        </form>
+                      )}
+                    </div>
+                  </div>
+                </section>
+              }/>
+              {import.meta.env.DEV && (
+                <Route path="/dev/shader" element={<ShaderDevPage />} />
+              )}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
 
             <section id="spacer" className="h-10"></section>
           </div>
         </div>
       </AppLayout>
-    </>
+    </BrowserRouter>
   )
 }
 
