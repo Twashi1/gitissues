@@ -26,9 +26,9 @@ export async function createIssueList(title: string): Promise<IssueList> {
   return response.json() as Promise<IssueList>
 }
 
-export async function updateIssueList(id: number, title: string): Promise<IssueList> {
+export async function patchIssueList(id: number, title: string): Promise<IssueList> {
   const response = await fetch(`/api/issue-lists/${id}`, {
-    method: 'PUT',
+    method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
     },

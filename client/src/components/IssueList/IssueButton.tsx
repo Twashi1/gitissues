@@ -11,7 +11,7 @@ export default function IssueButton({ issue, onClick, onDelete }: Props) {
   // TODO: add focus ring
   return (
     <div className="relative">
-      <div onClick={onClick} className="flex items-center gap-2 rounded-md bg-slate-700 p-2 opacity-90 transition-colors border border-slate-700 hover:bg-slate-600">
+      <div onClick={onClick} className="flex items-center gap-2 rounded-md bg-slate-700 p-2 opacity-90 transition-colors border border-slate-500 hover:bg-slate-600">
         <span className="flex-1 text-base">{issue.title}</span>
 
         <Button variant='secondary' onClick={(e) => {

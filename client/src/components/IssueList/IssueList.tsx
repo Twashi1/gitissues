@@ -13,14 +13,52 @@ type Props = {
   onDeleteList: (listId: number) => void
   onDeleteIssue: (issueId: number) => void
   onCreateIssue: (listId: number, title: string, description: string) => void
+  onMoveIssue: (issueId: number, targetListId: number) => Promise<void>
 }
 
-export default function IssueList({ listId, title, issues, onUpdateTitle, onDeleteList, onDeleteIssue, onCreateIssue }: Props) {
+export default function IssueList({ listId, title, issues, onUpdateTitle, onDeleteList, onDeleteIssue, onCreateIssue, onMoveIssue }: Props) {
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [editTitle, setEditTitle] = useState(title)
   const [showNewIssueForm, setShowNewIssueForm] = useState(false)
   const [newIssueTitle, setNewIssueTitle] = useState('')
   const [newIssueDescription, setNewIssueDescription] = useState('')
+  const [isOver, setIsOver] = useState(false)
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+  }
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsOver(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsOver(false)
+  }
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsOver(false)
+
+    const data = e.dataTransfer.getData('application/json')
+    if (!data) return
+
+    const item = JSON.parse(data)
+
+    // Only move if the issue is coming from a different list
+    if (item.listId !== listId) {
+      try {
+        console.log('Moving issue', item.id, 'from list', item.listId, 'to list', listId)
+        await onMoveIssue(item.id, listId)
+      } catch (error) {
+        console.error('Failed to move issue:', error)
+        // TODO: handle error, maybe show notification
+      }
+    }
+  }
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEditTitle(e.target.value)
@@ -63,7 +101,13 @@ export default function IssueList({ listId, title, issues, onUpdateTitle, onDele
   }
 
   return (
-    <div className="flex flex-col gap-2 w-full min-w-md bg-slate-800/40 rounded-md p-4 border border-slate-700">
+    <div
+      onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className={`${isOver ? 'border-dashed border-slate-400' : 'border border-slate-700'} flex flex-col gap-2 w-full min-w-md max-w-lg bg-slate-800/40 rounded-md p-4`}
+    >
       <div className="mb-4 flex items-center justify-between">
         <div className="flex-1">
           {isEditingTitle ? (

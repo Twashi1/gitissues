@@ -52,3 +52,17 @@ export async function patchIssue(data: IssuePatchVariables): Promise<Issue> {
 
   return response.json() as Promise<Issue>
 }
+
+export async function moveIssue(issueId: number, listId: number): Promise<void> {
+  const response = await fetch(`/api/issue/${issueId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ listId }),
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to move issue')
+  }
+}

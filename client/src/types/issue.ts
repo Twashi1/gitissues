@@ -13,6 +13,7 @@ export type Issue = {
   title: string
   description: string
   status: IssueStatus
+  listId?: number
 }
 
 export type IssueCreateRequest = {
@@ -26,6 +27,7 @@ export type IssuePatchRequest = {
   title?: string
   description?: string
   status?: IssueStatus
+  listId?: number
 }
 
 export type IssuePatchVariables = {

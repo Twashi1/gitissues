@@ -1,8 +1,12 @@
 package gitissues.issuetag
 
-import jakarta.persistence.*
 import gitissues.dto.issuetag.IssueTagResponse
 import gitissues.issuetag.IssueTagId
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.Id
+import jakarta.persistence.IdClass
+import jakarta.persistence.Table
 import tools.jackson.databind.ObjectMapper
 
 @Entity
@@ -12,30 +16,29 @@ class IssueTag(
     @Id
     @Column(name = "issue_id")
     var issueId: Long = 0,
-
     @Id
     @Column(name = "tag_id")
     var tagId: Long = 0,
-
     @Column(columnDefinition = "jsonb")
     var value: String? = null,
-)
+) {
+    // TODO: move to controller; keep separate from entity
+    fun toResponse(mapper: ObjectMapper): IssueTagResponse {
+        val jsonValue =
+            try {
+                if (value != null) {
+                    mapper.readTree(value)
+                } else {
+                    null
+                }
+            } catch (e: Exception) {
+                throw RuntimeException("Invalid JSON for issueId=$issueId, tagId=$tagId")
+            }
 
-// TODO: move to controller; keep separate from entity
-fun IssueTag.toResponse(mapper: ObjectMapper): IssueTagResponse {
-  val jsonValue = try {
-    if (value != null) {
-      mapper.readTree(value)
-    } else {
-      null
+        return IssueTagResponse(
+            issueId = issueId,
+            tagId = tagId,
+            value = jsonValue,
+        )
     }
-  } catch (e: Exception) {
-    throw RuntimeException("Invalid JSON for issueid=$issueId, tagId=$tagId")
-  }
-
-  return IssueTagResponse(
-    issueId = issueId,
-    tagId = tagId,
-    value = jsonValue
-  )
 }

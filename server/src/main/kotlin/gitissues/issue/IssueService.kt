@@ -3,7 +3,6 @@ package gitissues.issue
 import gitissues.dto.issue.IssueCreateRequest
 import gitissues.dto.issue.IssuePatchRequest
 import gitissues.dto.issue.IssueResponse
-import gitissues.issuelist.IssueList
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -31,12 +30,13 @@ class IssueService(
             }.toResponse()
 
     fun create(req: IssueCreateRequest): IssueResponse {
-        val issue = Issue(
-            title = req.title,
-            description = req.description,
-            status = req.status,
-            listId = if (req.listId > 0) req.listId else null
-        )
+        val issue =
+            Issue(
+                title = req.title,
+                description = req.description,
+                status = req.status,
+                listId = if (req.listId != null && req.listId > 0) req.listId else null,
+            )
         return repo.save(issue).toResponse()
     }
 
@@ -68,6 +68,8 @@ class IssueService(
 
         issue.title = req.title ?: issue.title
         issue.description = req.description ?: issue.description
+        issue.status = req.status ?: issue.status
+        issue.listId = req.listId ?: issue.listId
 
         return issue.toResponse()
     }

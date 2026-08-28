@@ -11,14 +11,35 @@ type Props = {
 
 export default function IssueListItem({ issue, onDelete }: Props) {
   const [open, setOpen] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
+
+  const handleDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      id: issue.id,
+      listId: issue.listId
+    }))
+    setIsDragging(true)
+  }
+
+  const handleDragEnd = () => {
+    setIsDragging(false)
+  }
 
   return (
     <div className="w-full">
-      <IssueButton
-        issue={issue}
-        onClick={() => setOpen(v => !v)}
-        onDelete={onDelete}
-      />
+      <div
+        draggable="true"
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        className={isDragging ? 'opacity-50' : ''}
+      >
+        <IssueButton
+          issue={issue}
+          onClick={() => setOpen(v => !v)}
+          onDelete={onDelete}
+        />
+      </div>
 
       {/* always mounted */}
       <div

@@ -1,10 +1,12 @@
 package gitissues.issuelist
 
 import gitissues.dto.issuelist.IssueListCreateRequest
+import gitissues.dto.issuelist.IssueListPatchRequest
 import gitissues.dto.issuelist.IssueListResponse
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
@@ -31,11 +33,11 @@ class IssueListController(
         @RequestBody req: IssueListCreateRequest,
     ): IssueListResponse = service.create(req)
 
-    @PutMapping("/{id}")
-    fun update(
+    @PatchMapping("/{id}")
+    fun patch(
         @PathVariable id: Long,
-        @RequestBody req: IssueListCreateRequest,
-    ): IssueListResponse = service.update(id, req)
+        @RequestBody req: IssueListPatchRequest,
+    ): IssueListResponse = service.patch(id, req)
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)

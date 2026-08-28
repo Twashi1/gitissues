@@ -6,8 +6,8 @@ import AppLayout from './components/Layout/AppLayout'
 import IssueList from './components/IssueList/IssueList'
 import ShaderDevPage from './pages/ShaderDevPage'
 
-import { getIssues, deleteIssue } from './services/issues'
-import { getIssueLists, createIssueList } from './services/issueLists'
+import { getIssues, deleteIssue, moveIssue, createIssue } from './services/issues'
+import { getIssueLists, createIssueList, patchIssueList, deleteIssueList } from './services/issueLists'
 
 function App() {
   const [issueLists, setIssueLists] = useState<Array<{id: number; title: string; createdAt: string}>>([])
@@ -15,23 +15,8 @@ function App() {
   const [newListTitle, setNewListTitle] = useState<string>('')
   const [showNewListForm, setShowNewListForm] = useState(false)
   const [creatingList, setCreatingList] = useState(false)
+  const [isMoving, setIsMoving] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
-
-  // Fetch issue lists on mount
-  useEffect(() => {
-    fetchIssueLists()
-  }, [])
-
-  // Scroll to right when the new list form appears
-  useEffect(() => {
-    if (showNewListForm) {
-      requestAnimationFrame(() => {
-        if (scrollRef.current) {
-          scrollRef.current.scrollLeft = scrollRef.current.scrollWidth
-        }
-      })
-    }
-  }, [showNewListForm, scrollRef])
 
   const fetchIssueLists = async () => {
     try {
@@ -52,6 +37,12 @@ function App() {
     }
   }
 
+  // Fetch issue lists on mount
+  useEffect(() => {
+    fetchIssueLists()
+  }, [])
+
+  
   const handleCreateList = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newListTitle.trim()) return
@@ -75,13 +66,7 @@ function App() {
 
   const handleUpdateListTitle = async (listId: number, title: string) => {
     try {
-      await fetch(`/api/issue-lists/${listId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ title }),
-      })
+      await patchIssueList(listId, title)
       setIssueLists(prev => prev.map(list =>
         list.id === listId ? { ...list, title } : list
       ))
@@ -92,9 +77,7 @@ function App() {
 
   const handleDeleteList = async (listId: number) => {
     try {
-      await fetch(`/api/issue-lists/${listId}`, {
-        method: 'DELETE',
-      })
+      await deleteIssueList(listId)
       setIssueLists(prev => prev.filter(list => list.id !== listId))
       setIssuesByListId(prev => {
         const newState = { ...prev }
@@ -110,21 +93,16 @@ function App() {
 
   const handleCreateIssue = async (listId: number, title: string, description: string) => {
     try {
-      await fetch('/api/issue', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ title, description, listId, status: 'UNASSIGNED' }),
-      })
-      // Refetch issues for this list
-      const issues = await getIssues(listId)
+      const createdIssue: Issue = await createIssue({ title, description, listId, status: 'UNASSIGNED' })
+      // Optimistically add the issue to the list with the correct listId
+      const issueWithListId = { ...createdIssue, listId }
       setIssuesByListId(prev => ({
         ...prev,
-        [listId]: issues
+        [listId]: [...(prev[listId] || []), issueWithListId]
       }))
     } catch (error) {
       console.error('Failed to create issue:', error)
+      // TODO: handle error, maybe show a notification
     }
   }
 
@@ -138,75 +116,147 @@ function App() {
     }
   }
 
+  const handleMoveIssue = async (issueId: number, targetListId: number) => {
+    // Prevent concurrent moves
+    if (isMoving) {
+      return
+    }
+    setIsMoving(true)
+    let sourceListId: number | undefined
+    let issueIndex: number | undefined
+    let movedIssue: Issue | undefined
+
+    try {
+      // We'll optimistically update the state: remove the issue from its current list and add it to the target list
+      setIssuesByListId(prev => {
+        // We need to find the issue in the current state
+        for (const [listIdStr, issues] of Object.entries(prev)) {
+          const listIdNum = Number(listIdStr)
+          const idx = issues.findIndex(issue => issue.id === issueId)
+          if (idx !== -1) {
+            sourceListId = listIdNum
+            issueIndex = idx
+            movedIssue = issues[idx]
+            // Remove the issue from the source list
+            const newSourceList = [...issues]
+            newSourceList.splice(idx, 1)
+            // Create a new state object
+            const newState = { ...prev }
+            newState[sourceListId] = newSourceList
+            // Add the issue to the target list (at the end)
+            const targetList = newState[targetListId] || []
+            newState[targetListId] = [...targetList, movedIssue]
+            return newState
+          }
+        }
+        // If we didn't find the issue, return the state unchanged
+        return prev
+      })
+
+      // Now, call the API to move the issue
+      await moveIssue(issueId, targetListId)
+      // If we get here, the move was successful
+      setIsMoving(false)
+    } catch (error) {
+      // If there was an error, rollback the state update
+      setIssuesByListId(prev => {
+        // We need to revert: remove the issue from the target list and put it back in the source list at the original index
+        if (sourceListId !== undefined && issueIndex !== undefined && movedIssue) {
+          // Remove the issue from the target list (we don't know the index, so we find it by id)
+          const targetList = [...(prev[targetListId] || [])]
+          const targetIndex = targetList.findIndex(issue => issue.id === issueId)
+          if (targetIndex !== -1) {
+            targetList.splice(targetIndex, 1)
+          }
+
+          // Insert the issue back into the source list at the original index
+          const sourceList = [...(prev[sourceListId] || [])]
+          sourceList.splice(issueIndex, 0, movedIssue)
+
+          return {
+            ...prev,
+            [targetListId]: targetList,
+            [sourceListId]: sourceList
+          }
+        }
+        return prev
+      })
+
+      setIsMoving(false)
+      throw error // Re-throw so that the caller can handle it if needed
+    }
+  }
+
   return (
     <BrowserRouter>
       <AppLayout>
         <div className="text-slate-100">
           <div className="flex-1 px-6 py-10 space-y-10 min-h-0">
-            <Routes>
-              <Route path="/" element={
-                <section id="issue-lists" className="mb-6">
-                  <div ref={scrollRef} className="flex gap-4 items-start overflow-x-auto pb-4 w-full">
-                    {/* Map over issue lists */}
-                    {issueLists.map(list => (
-                      <IssueList
-                        key={list.id}
-                        listId={list.id}
-                        title={list.title}
-                        issues={issuesByListId[list.id] || []}
-                        onUpdateTitle={handleUpdateListTitle}
-                        onDeleteList={handleDeleteList}
-                        onDeleteIssue={handleDeleteIssue}
-                        onCreateIssue={handleCreateIssue}
-                      />
-                    ))}
+              <Routes>
+                <Route path="/" element={
+                  <section id="issue-lists" className="mb-6">
+                    <div ref={scrollRef} className="flex gap-4 items-start overflow-x-auto pb-4 w-full">
+                      {/* Map over issue lists */}
+                      {issueLists.map(list => (
+                        <IssueList
+                          key={list.id}
+                          listId={list.id}
+                          title={list.title}
+                          issues={issuesByListId[list.id] || []}
+                          onUpdateTitle={handleUpdateListTitle}
+                          onDeleteList={handleDeleteList}
+                          onDeleteIssue={handleDeleteIssue}
+                          onCreateIssue={handleCreateIssue}
+                          onMoveIssue={handleMoveIssue}
+                        />
+                      ))}
 
-                    {/* Button to create new list */}
-                    <div className="flex-shrink-0">
-                      <button
-                        onClick={() => setShowNewListForm(true)}
-                        className="mb-2 px-4 py-2 bg-slate-600 text-slate-100 hover:bg-slate-500 rounded whitespace-nowrap"
-                      >
-                        New List
-                      </button>
-                      {showNewListForm && (
-                        <form onSubmit={handleCreateList} className="flex gap-2">
-                          <input
-                            type="text"
-                            value={newListTitle}
-                            onChange={(e) => setNewListTitle(e.target.value)}
-                            placeholder="List title"
-                            className="px-3 py-2 border border-slate-600 rounded bg-slate-800 text-slate-100"
-                            autoFocus
-                          />
-                          <button
-                            type="submit"
-                            disabled={creatingList}
-                            className="px-4 py-2 bg-slate-600 text-slate-100 hover:bg-slate-500 rounded whitespace-nowrap"
-                          >
-                            {creatingList ? 'Creating...' : 'Create'}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setNewListTitle('');
-                              setShowNewListForm(false);
-                            }}
-                            className="ml-2 px-4 py-2 bg-slate-600 text-slate-100 hover:bg-slate-500 rounded whitespace-nowrap"
-                          >
-                            Cancel
-                          </button>
-                        </form>
-                      )}
+                      {/* Button to create new list */}
+                      <div className="flex-shrink-0">
+                        <button
+                          onClick={() => setShowNewListForm(true)}
+                          className="mb-2 px-4 py-2 bg-slate-600 text-slate-100 hover:bg-slate-500 rounded whitespace-nowrap"
+                        >
+                          New List
+                        </button>
+                        {showNewListForm && (
+                          <form onSubmit={handleCreateList} className="flex gap-2">
+                            <input
+                              type="text"
+                              value={newListTitle}
+                              onChange={(e) => setNewListTitle(e.target.value)}
+                              placeholder="List title"
+                              className="px-3 py-2 border border-slate-600 rounded bg-slate-800 text-slate-100"
+                              autoFocus
+                            />
+                            <button
+                              type="submit"
+                              disabled={creatingList}
+                              className="px-4 py-2 bg-slate-600 text-slate-100 hover:bg-slate-500 rounded whitespace-nowrap"
+                            >
+                              {creatingList ? 'Creating...' : 'Create'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setNewListTitle('');
+                                setShowNewListForm(false);
+                              }}
+                              className="ml-2 px-4 py-2 bg-slate-600 text-slate-100 hover:bg-slate-500 rounded whitespace-nowrap"
+                            >
+                              Cancel
+                            </button>
+                          </form>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </section>
-              }/>
-              {import.meta.env.DEV && (
-                <Route path="/dev/shader" element={<ShaderDevPage />} />
-              )}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
+                  </section>
+                }/>
+                {import.meta.env.DEV && (
+                  <Route path="/dev/shader" element={<ShaderDevPage />} />
+                )}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
 
             <section id="spacer" className="h-10"></section>
           </div>
