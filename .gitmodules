@@ -1,0 +1,4 @@
+[submodule "server/kotlin-bindings"]
+	path = server/kotlin-bindings
+	url = https://github.com/Twashi1/gitissues-cli.git
+	branch = kotlin-bindings

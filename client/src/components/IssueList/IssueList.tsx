@@ -17,46 +17,49 @@ type Props = {
 }
 
 export default function IssueList({ listId, title, issues, onUpdateTitle, onDeleteList, onDeleteIssue, onCreateIssue, onMoveIssue }: Props) {
-  const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [editTitle, setEditTitle] = useState(title)
   const [showNewIssueForm, setShowNewIssueForm] = useState(false)
   const [newIssueTitle, setNewIssueTitle] = useState('')
   const [newIssueDescription, setNewIssueDescription] = useState('')
-  const [isOver, setIsOver] = useState(false)
+  const [dragOverCount, setDragOverCount] = useState(0)
+  const isOver = dragOverCount > 0
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
     e.dataTransfer.dropEffect = 'move'
+
+    console.log('drag over: ', dragOverCount)
   }
 
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault()
-    setIsOver(true)
+    setDragOverCount(c => c + 1)
+    console.log('drag enter: ', dragOverCount)
   }
 
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault()
-    setIsOver(false)
+    setDragOverCount(c => Math.max(0, c - 1))
+    console.log('drag leave: ', dragOverCount)
   }
 
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault()
-    setIsOver(false)
+    setDragOverCount(0)
+
+    console.log('drag drop: ', dragOverCount)
 
     const data = e.dataTransfer.getData('application/json')
     if (!data) return
 
     const item = JSON.parse(data)
 
-    // Only move if the issue is coming from a different list
-    if (item.listId !== listId) {
-      try {
-        console.log('Moving issue', item.id, 'from list', item.listId, 'to list', listId)
-        await onMoveIssue(item.id, listId)
-      } catch (error) {
-        console.error('Failed to move issue:', error)
-        // TODO: handle error, maybe show notification
-      }
+    try {
+      console.log('Moving issue', item.id, 'from list', item.listId, 'to list', listId)
+      await onMoveIssue(item.id, listId)
+    } catch (error) {
+      console.error('Failed to move issue:', error)
+      // TODO: handle error, maybe show notification
     }
   }
 
@@ -66,12 +69,10 @@ export default function IssueList({ listId, title, issues, onUpdateTitle, onDele
 
   const handleTitleSave = () => {
     onUpdateTitle(listId, editTitle)
-    setIsEditingTitle(false)
   }
 
   const handleTitleCancel = () => {
     setEditTitle(title)
-    setIsEditingTitle(false)
   }
 
   const handleTitleKeyDown = (e: React.KeyboardEvent) => {
@@ -106,28 +107,20 @@ export default function IssueList({ listId, title, issues, onUpdateTitle, onDele
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className={`${isOver ? 'border-dashed border-slate-400' : 'border border-slate-700'} flex flex-col gap-2 w-full min-w-md max-w-lg bg-slate-800/40 rounded-md p-4`}
+      className={`${isOver ? 'border-dashed border-slate-900' : 'border border-slate-700'} flex flex-col gap-2 w-full min-w-md max-w-lg bg-slate-800/40 rounded-md p-4`}
     >
       <div className="mb-4 flex items-center justify-between">
-        <div className="flex-1">
-          {isEditingTitle ? (
-            <Input
-              variant="secondary"
-              value={editTitle}
-              onChange={handleTitleChange}
-              onBlur={handleTitleSave}
-              onKeyDown={handleTitleKeyDown}
-              autoFocus
-              className="border border-slate-600 bg-slate-800 text-slate-100 rounded mb-2"
-            />
-          ) : (
-            <Button
-              variant="list-title"
-              onClick={() => setIsEditingTitle(true)}
-            >
-              {title}
-            </Button>
-          )}
+        <div>
+          <Input
+            variant="secondary"
+            placeholder="Enter title"
+            value={editTitle}
+            onChange={handleTitleChange}
+            onBlur={handleTitleSave}
+            onKeyDown={handleTitleKeyDown}
+            autoFocus
+            className="w-auto border border-slate-600 bg-slate-800 text-slate-100 rounded mb-2"
+          />
         </div>
         <Button variant="secondary" onClick={() => onDeleteList(listId)} className="border border-slate-600">
           Delete List
