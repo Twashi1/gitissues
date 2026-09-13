@@ -1,7 +1,7 @@
 CREATE TABLE issue_tags (
-  issue_id BIGINT NOT NULL,
-  tag_id BIGINT NOT NULL,
-  value JSONB,
+  issue_id INTEGER NOT NULL,
+  tag_id INTEGER NOT NULL,
+  value TEXT,
 
   PRIMARY KEY (issue_id, tag_id),
 

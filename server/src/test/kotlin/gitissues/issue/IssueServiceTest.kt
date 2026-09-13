@@ -3,41 +3,49 @@ package gitissues.issue
 import gitissues.dto.issue.IssueCreateRequest
 import gitissues.dto.issue.IssuePatchRequest
 import gitissues.dto.issue.IssueResponse
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.kotlin.*
 import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.kotlin.any
+import org.mockito.kotlin.never
+import org.mockito.kotlin.reset
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
 
 @ExtendWith(MockitoExtension::class)
 class IssueServiceTest {
-
     @Mock
     private lateinit var repo: IssueRepository
 
     @InjectMocks
     private lateinit var service: IssueService
 
-    private val testIssue = Issue(
-        id = 1L,
-        title = "Test Issue",
-        description = "Test Description",
-        status = "open",
-        listId = 1L
-    )
+    private val testIssue =
+        Issue(
+            id = 1L,
+            title = "Test Issue",
+            description = "Test Description",
+            status = "open",
+            listId = 1L,
+        )
 
-    private val testIssueResponse = IssueResponse(
-        id = 1L,
-        title = "Test Issue",
-        description = "Test Description",
-        status = "open",
-        listId = 1L
-    )
+    private val testIssueResponse =
+        IssueResponse(
+            id = 1L,
+            title = "Test Issue",
+            description = "Test Description",
+            status = "open",
+            listId = 1L,
+        )
 
     @BeforeEach
     fun setup() {
@@ -91,9 +99,10 @@ class IssueServiceTest {
         whenever(repo.findById(999L)).thenReturn(java.util.Optional.empty())
 
         // Act & Assert
-        val exception = assertThrows(ResponseStatusException::class.java) {
-            service.get(999L)
-        }
+        val exception =
+            assertThrows(ResponseStatusException::class.java) {
+                service.get(999L)
+            }
         assertEquals(HttpStatus.NOT_FOUND, exception.statusCode)
         assertTrue(exception.reason?.contains("Issue 999 not found") == true)
         verify(repo).findById(999L)
@@ -102,33 +111,37 @@ class IssueServiceTest {
     @Test
     fun `test create creates and returns issue`() {
         // Arrange
-        val createRequest = IssueCreateRequest(
-            title = "New Issue",
-            description = "New Description",
-            status = "open",
-            listId = 1L
-        )
-        val issueToSave = Issue(
-            id = 0L,
-            title = "New Issue",
-            description = "New Description",
-            status = "open",
-            listId = 1L
-        )
-        val savedIssue = Issue(
-            id = 1L,
-            title = "New Issue",
-            description = "New Description",
-            status = "open",
-            listId = 1L
-        )
-        val expectedResponse = IssueResponse(
-            id = 1L,
-            title = "New Issue",
-            description = "New Description",
-            status = "open",
-            listId = 1L
-        )
+        val createRequest =
+            IssueCreateRequest(
+                title = "New Issue",
+                description = "New Description",
+                status = "open",
+                listId = 1L,
+            )
+        val issueToSave =
+            Issue(
+                id = 0L,
+                title = "New Issue",
+                description = "New Description",
+                status = "open",
+                listId = 1L,
+            )
+        val savedIssue =
+            Issue(
+                id = 1L,
+                title = "New Issue",
+                description = "New Description",
+                status = "open",
+                listId = 1L,
+            )
+        val expectedResponse =
+            IssueResponse(
+                id = 1L,
+                title = "New Issue",
+                description = "New Description",
+                status = "open",
+                listId = 1L,
+            )
 
         whenever(repo.save(any())).thenAnswer { invocation ->
             val issue = invocation.getArgument(0) as Issue
@@ -138,7 +151,7 @@ class IssueServiceTest {
                 title = issue.title,
                 description = issue.description,
                 status = issue.status,
-                listId = issue.listId
+                listId = issue.listId,
             )
         }
 
@@ -153,33 +166,37 @@ class IssueServiceTest {
     @Test
     fun `test create handles null listId`() {
         // Arrange
-        val createRequest = IssueCreateRequest(
-            title = "New Issue",
-            description = "New Description",
-            status = "open",
-            listId = null
-        )
-        val issueToSave = Issue(
-            id = 0L,
-            title = "New Issue",
-            description = "New Description",
-            status = "open",
-            listId = null
-        )
-        val savedIssue = Issue(
-            id = 1L,
-            title = "New Issue",
-            description = "New Description",
-            status = "open",
-            listId = null
-        )
-        val expectedResponse = IssueResponse(
-            id = 1L,
-            title = "New Issue",
-            description = "New Description",
-            status = "open",
-            listId = null
-        )
+        val createRequest =
+            IssueCreateRequest(
+                title = "New Issue",
+                description = "New Description",
+                status = "open",
+                listId = null,
+            )
+        val issueToSave =
+            Issue(
+                id = 0L,
+                title = "New Issue",
+                description = "New Description",
+                status = "open",
+                listId = null,
+            )
+        val savedIssue =
+            Issue(
+                id = 1L,
+                title = "New Issue",
+                description = "New Description",
+                status = "open",
+                listId = null,
+            )
+        val expectedResponse =
+            IssueResponse(
+                id = 1L,
+                title = "New Issue",
+                description = "New Description",
+                status = "open",
+                listId = null,
+            )
 
         whenever(repo.save(any())).thenAnswer { invocation ->
             val issue = invocation.getArgument(0) as Issue
@@ -189,7 +206,7 @@ class IssueServiceTest {
                 title = issue.title,
                 description = issue.description,
                 status = issue.status,
-                listId = issue.listId
+                listId = issue.listId,
             )
         }
 
@@ -220,9 +237,10 @@ class IssueServiceTest {
         whenever(repo.existsById(999L)).thenReturn(false)
 
         // Act & Assert
-        val exception = assertThrows(NoSuchElementException::class.java) {
-            service.delete(999L)
-        }
+        val exception =
+            assertThrows(NoSuchElementException::class.java) {
+                service.delete(999L)
+            }
         assertNotNull(exception.message)
         assertTrue(exception.message!!.contains("Issue 999 not found"))
         verify(repo).existsById(999L)
@@ -232,33 +250,37 @@ class IssueServiceTest {
     @Test
     fun `test patch updates issue when found`() {
         // Arrange
-        val patchRequest = IssuePatchRequest(
-            title = "Updated Title",
-            description = null,
-            status = "in progress",
-            listId = 2L
-        )
-        val issueToUpdate = Issue(
-            id = 1L,
-            title = "Original Title",
-            description = "Original Description",
-            status = "open",
-            listId = 1L
-        )
-        val updatedIssue = Issue(
-            id = 1L,
-            title = "Updated Title",
-            description = "Original Description",
-            status = "in progress",
-            listId = 2L
-        )
-        val expectedResponse = IssueResponse(
-            id = 1L,
-            title = "Updated Title",
-            description = "Original Description",
-            status = "in progress",
-            listId = 2L
-        )
+        val patchRequest =
+            IssuePatchRequest(
+                title = "Updated Title",
+                description = null,
+                status = "in progress",
+                listId = 2L,
+            )
+        val issueToUpdate =
+            Issue(
+                id = 1L,
+                title = "Original Title",
+                description = "Original Description",
+                status = "open",
+                listId = 1L,
+            )
+        val updatedIssue =
+            Issue(
+                id = 1L,
+                title = "Updated Title",
+                description = "Original Description",
+                status = "in progress",
+                listId = 2L,
+            )
+        val expectedResponse =
+            IssueResponse(
+                id = 1L,
+                title = "Updated Title",
+                description = "Original Description",
+                status = "in progress",
+                listId = 2L,
+            )
 
         whenever(repo.findById(1L)).thenReturn(java.util.Optional.of(issueToUpdate))
 
@@ -275,18 +297,20 @@ class IssueServiceTest {
     @Test
     fun `test patch throws exception when issue not found`() {
         // Arrange
-        val patchRequest = IssuePatchRequest(
-            title = "Updated Title",
-            description = null,
-            status = null,
-            listId = null
-        )
+        val patchRequest =
+            IssuePatchRequest(
+                title = "Updated Title",
+                description = null,
+                status = null,
+                listId = null,
+            )
         whenever(repo.findById(999L)).thenReturn(java.util.Optional.empty())
 
         // Act & Assert
-        val exception = assertThrows(ResponseStatusException::class.java) {
-            service.patch(999L, patchRequest)
-        }
+        val exception =
+            assertThrows(ResponseStatusException::class.java) {
+                service.patch(999L, patchRequest)
+            }
         assertEquals(HttpStatus.NOT_FOUND, exception.statusCode)
         assertTrue(exception.reason?.contains("Issue 999 not found") == true)
         verify(repo).findById(999L)

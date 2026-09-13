@@ -49,8 +49,10 @@ Thumbs.db
 *.swp
 *.swo
 *~
+*.bak
 
 server/src/main/resources/static/*
 graphify-out
 .claude
 CLAUDE.md
+gitissues.db

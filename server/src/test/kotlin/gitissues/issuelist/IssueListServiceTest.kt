@@ -4,18 +4,24 @@ import gitissues.dto.issuelist.IssueListCreateRequest
 import gitissues.dto.issuelist.IssueListPatchRequest
 import gitissues.dto.issuelist.IssueListResponse
 import gitissues.issuelist.IssueList
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.kotlin.*
 import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.kotlin.any
+import org.mockito.kotlin.never
+import org.mockito.kotlin.reset
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 @ExtendWith(MockitoExtension::class)
 class IssueListServiceTest {
-
     @Mock
     private lateinit var repository: IssueListRepository
 
@@ -25,17 +31,19 @@ class IssueListServiceTest {
     @InjectMocks
     private lateinit var service: IssueListService
 
-    private val testIssueList = IssueList(
-        id = 1L,
-        title = "Test List",
-        createdAt = java.time.LocalDateTime.now()
-    )
+    private val testIssueList =
+        IssueList(
+            id = 1L,
+            title = "Test List",
+            createdAt = java.time.LocalDateTime.now(),
+        )
 
-    private val testIssueListResponse = IssueListResponse(
-        id = 1L,
-        title = "Test List",
-        createdAt = testIssueList.createdAt
-    )
+    private val testIssueListResponse =
+        IssueListResponse(
+            id = 1L,
+            title = "Test List",
+            createdAt = testIssueList.createdAt,
+        )
 
     @BeforeEach
     fun setup() {
@@ -75,9 +83,10 @@ class IssueListServiceTest {
         whenever(repository.findById(999L)).thenReturn(java.util.Optional.empty())
 
         // Act & Assert
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            service.get(999L)
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                service.get(999L)
+            }
         assertNotNull(exception.message)
         assertTrue(exception.message!!.contains("IssueList 999 not found"))
         verify(repository).findById(999L)
@@ -87,21 +96,24 @@ class IssueListServiceTest {
     fun `test create creates and returns issue list`() {
         // Arrange
         val createRequest = IssueListCreateRequest(title = "New List")
-        val issueListToSave = IssueList(
-            id = 0L,
-            title = "New List",
-            createdAt = java.time.LocalDateTime.now()
-        )
-        val savedIssueList = IssueList(
-            id = 1L,
-            title = "New List",
-            createdAt = java.time.LocalDateTime.now()
-        )
-        val expectedResponse = IssueListResponse(
-            id = 1L,
-            title = "New List",
-            createdAt = savedIssueList.createdAt
-        )
+        val issueListToSave =
+            IssueList(
+                id = 0L,
+                title = "New List",
+                createdAt = java.time.LocalDateTime.now(),
+            )
+        val savedIssueList =
+            IssueList(
+                id = 1L,
+                title = "New List",
+                createdAt = java.time.LocalDateTime.now(),
+            )
+        val expectedResponse =
+            IssueListResponse(
+                id = 1L,
+                title = "New List",
+                createdAt = savedIssueList.createdAt,
+            )
 
         whenever(repository.save(any())).thenAnswer { invocation ->
             val issueList = invocation.getArgument(0) as IssueList
@@ -109,7 +121,7 @@ class IssueListServiceTest {
             IssueList(
                 id = 1L,
                 title = issueList.title,
-                createdAt = issueList.createdAt
+                createdAt = issueList.createdAt,
             )
         }
 
@@ -143,9 +155,10 @@ class IssueListServiceTest {
         whenever(repository.existsById(999L)).thenReturn(false)
 
         // Act & Assert
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            service.delete(999L)
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                service.delete(999L)
+            }
         assertNotNull(exception.message)
         assertTrue(exception.message!!.contains("IssueList 999 not found"))
         verify(repository).existsById(999L)
@@ -157,21 +170,24 @@ class IssueListServiceTest {
     fun `test patch updates issue list when found`() {
         // Arrange
         val patchRequest = IssueListPatchRequest(title = "Updated List")
-        val issueListToUpdate = IssueList(
-            id = 1L,
-            title = "Original List",
-            createdAt = java.time.LocalDateTime.now()
-        )
-        val updatedIssueList = IssueList(
-            id = 1L,
-            title = "Updated List",
-            createdAt = issueListToUpdate.createdAt
-        )
-        val expectedResponse = IssueListResponse(
-            id = 1L,
-            title = "Updated List",
-            createdAt = updatedIssueList.createdAt
-        )
+        val issueListToUpdate =
+            IssueList(
+                id = 1L,
+                title = "Original List",
+                createdAt = java.time.LocalDateTime.now(),
+            )
+        val updatedIssueList =
+            IssueList(
+                id = 1L,
+                title = "Updated List",
+                createdAt = issueListToUpdate.createdAt,
+            )
+        val expectedResponse =
+            IssueListResponse(
+                id = 1L,
+                title = "Updated List",
+                createdAt = updatedIssueList.createdAt,
+            )
 
         whenever(repository.findById(1L)).thenReturn(java.util.Optional.of(issueListToUpdate))
         whenever(repository.save(any())).thenAnswer { invocation ->
@@ -180,7 +196,7 @@ class IssueListServiceTest {
             IssueList(
                 id = 1L,
                 title = issueList.title,
-                createdAt = issueList.createdAt
+                createdAt = issueList.createdAt,
             )
         }
 
@@ -200,9 +216,10 @@ class IssueListServiceTest {
         whenever(repository.findById(999L)).thenReturn(java.util.Optional.empty())
 
         // Act & Assert
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            service.patch(999L, patchRequest)
-        }
+        val exception =
+            assertThrows(IllegalArgumentException::class.java) {
+                service.patch(999L, patchRequest)
+            }
         assertNotNull(exception.message)
         assertTrue(exception.message!!.contains("IssueList 999 not found"))
         verify(repository).findById(999L)

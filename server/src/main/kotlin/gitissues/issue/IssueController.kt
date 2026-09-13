@@ -21,8 +21,9 @@ class IssueController(
     private val service: IssueService,
 ) {
     @GetMapping
-    fun all(@RequestParam(required = false) listId: Long?): List<IssueResponse> =
-        if (listId != null) service.getByListId(listId) else service.all()
+    fun all(
+        @RequestParam(required = false) listId: Long?,
+    ): List<IssueResponse> = if (listId != null) service.getByListId(listId) else service.all()
 
     @GetMapping("/{id}")
     fun get(

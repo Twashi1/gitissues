@@ -12,7 +12,7 @@ import jakarta.persistence.Table
 @Table(name = "issues")
 class Issue(
     @Id
-    @Column(nullable = false)
+    @Column(columnDefinition = "INTEGER", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long = 0,
     @Column(nullable = false, length = 128)

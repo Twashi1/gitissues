@@ -23,25 +23,36 @@ repositories {
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.boot:spring-boot-starter-mustache")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-jdbc")
+    implementation("org.springframework.boot:spring-boot-starter-flyway")
+
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+
+    // SQLite
+    runtimeOnly("org.xerial:sqlite-jdbc")
+    implementation("org.hibernate.orm:hibernate-community-dialects")
+
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.mockito.kotlin:mockito-kotlin:6.1.0")
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation("org.springframework.boot:spring-boot-starter-flyway")
-    implementation("org.flywaydb:flyway-database-postgresql")
-    runtimeOnly("org.postgresql:postgresql")
-    implementation("org.springframework.boot:spring-boot-starter-jdbc")
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")
-    // ktlintRuleset("com.pinterest:ktlint:0.50.0")
 }
 
 kotlin {
     compilerOptions {
         freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
+    }
+}
+
+sourceSets {
+    main {
+        kotlin.srcDir("kotlin-bindings/kotlin/bindings/src/main/kotlin")
+        java.srcDir("kotlin-bindings/kotlin/jni/java/src/main/java")
     }
 }
 
@@ -79,4 +90,12 @@ tasks.register<Exec>("buildFrontend") {
 
 tasks.named("processResources") {
     dependsOn("buildFrontend")
+}
+
+tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
+    jvmArgs("-Djava.library.path=$projectDir/kotlin-bindings/build/kotlin/kotlin/jni")
+}
+
+tasks.named<Jar>("bootJar") {
+    archiveFileName.set("gitissues.jar")
 }

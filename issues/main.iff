@@ -2,3 +2,6 @@ Server interacts with library to create IFF files :: @server $2 #todo created:20
 Enum selection for status/nature :: @ui $4 #todo created:2026-08-25 priority:medium;
 Shader code duplication between dev page and background component :: @ui $5 #todo created:2026-08-25 priority:low;
 Re-arrange issues within a list :: @ui $6 #todo created:2026-08-31 priority:high;
+Loading issues indicator when no lists are shown :: @ui $7 #todo created:2026-09-13 priority:low;
+Document installation :: @docs $8 #todo created:2026-09-13 priority:low;
+Doxygen/endpoint documentation :: @docs $9 #todo created:2026-09-13 priority:low;

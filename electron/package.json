@@ -1,0 +1,27 @@
+{
+  "name": "gitissues-desktop",
+  "version": "1.0.0",
+  "description": "GitIssues desktop application",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "com.gitissues.desktop",
+    "productName": "GitIssues",
+    "files": [
+      "**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "../server/build/libs/gitissues.jar",
+        "to": "backend/gitissues.jar"
+      }
+    ]
+  },
+  "devDependencies": {
+    "electron": "^44.3.0",
+    "electron-builder": "^26.15.3"
+  }
+}

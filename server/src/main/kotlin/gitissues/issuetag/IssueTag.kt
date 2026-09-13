@@ -14,12 +14,12 @@ import tools.jackson.databind.ObjectMapper
 @IdClass(IssueTagId::class)
 class IssueTag(
     @Id
-    @Column(name = "issue_id")
+    @Column(name = "issue_id", columnDefinition = "INTEGER")
     var issueId: Long = 0,
     @Id
-    @Column(name = "tag_id")
+    @Column(name = "tag_id", columnDefinition = "INTEGER")
     var tagId: Long = 0,
-    @Column(columnDefinition = "jsonb")
+    @Column(columnDefinition = "text")
     var value: String? = null,
 ) {
     // TODO: move to controller; keep separate from entity
