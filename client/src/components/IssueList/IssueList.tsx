@@ -63,8 +63,8 @@ export default function IssueList({ listId, title, issues, onUpdateTitle, onDele
     }
   }
 
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEditTitle(e.target.value)
+  const handleTitleChange = (value: string) => {
+    setEditTitle(value)
   }
 
   const handleTitleSave = () => {
@@ -73,16 +73,6 @@ export default function IssueList({ listId, title, issues, onUpdateTitle, onDele
 
   const handleTitleCancel = () => {
     setEditTitle(title)
-  }
-
-  const handleTitleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      handleTitleSave()
-    } else if (e.key === 'Escape') {
-      e.preventDefault()
-      handleTitleCancel()
-    }
   }
 
   const handleNewIssueSubmit = (e: React.FormEvent) => {
@@ -116,8 +106,8 @@ export default function IssueList({ listId, title, issues, onUpdateTitle, onDele
             placeholder="Enter title"
             value={editTitle}
             onChange={handleTitleChange}
-            onBlur={handleTitleSave}
-            onKeyDown={handleTitleKeyDown}
+            onSave={handleTitleSave}
+            onCancel={handleTitleCancel}
             autoFocus
             className="w-auto border border-slate-600 bg-slate-800 text-slate-100 rounded mb-2"
           />
@@ -147,7 +137,7 @@ export default function IssueList({ listId, title, issues, onUpdateTitle, onDele
             variant="primary"
             placeholder="Title"
             value={newIssueTitle}
-            onChange={(e) => setNewIssueTitle(e.target.value)}
+            onChange={(value) => setNewIssueTitle(value)}
             className="border border-slate-600 bg-slate-800 text-slate-100 rounded"
           />
           <TextArea

@@ -81,6 +81,28 @@ tasks.named("check") {
 
 tasks.named("build") {
     dependsOn("ktlintCheck")
+    dependsOn("buildNativeLibrary") // Add native library build as a dependency
+}
+
+tasks.register<Exec>("buildNativeLibrary") {
+    group = "build"
+    description = "Builds the native JNI library"
+    workingDir = file("kotlin-bindings")
+    // Configure and build the native library with JNI enabled
+    commandLine = listOf("bash", "-c", "cmake -S . -B build/kotlin -DBUILD_JNI=ON && cmake --build build/kotlin")
+}
+
+// Ensure the native library is built before running the application
+tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
+    dependsOn("buildNativeLibrary")
+    jvmArgs("-Djava.library.path=$projectDir/kotlin-bindings/build/kotlin/kotlin/jni")
+}
+
+// Also ensure it's built when building the frontend resources (though build already depends on it)
+tasks.named("processResources") {
+    dependsOn("buildFrontend")
+    // Also depend on native library build to ensure it's available for processResources if needed
+    dependsOn("buildNativeLibrary")
 }
 
 tasks.register<Exec>("buildFrontend") {
@@ -88,14 +110,9 @@ tasks.register<Exec>("buildFrontend") {
     commandLine("npm", "run", "build")
 }
 
-tasks.named("processResources") {
-    dependsOn("buildFrontend")
-}
-
-tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
-    jvmArgs("-Djava.library.path=$projectDir/kotlin-bindings/build/kotlin/kotlin/jni")
-}
-
-tasks.named<Jar>("bootJar") {
-    archiveFileName.set("gitissues.jar")
+// Clean native library build when cleaning
+tasks.named("clean") {
+    doLast {
+        delete(fileTree("kotlin-bindings/build"))
+    }
 }

@@ -51,8 +51,9 @@ export default function IssueDetail({ issue, onClick }: Props) {
             variant="secondary"
             placeholder="Title"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            onBlur={() => handlePatch(title, null, issue.id)}
+            onChange={(value) => setTitle(value)}
+            onSave={() => handlePatch(title, null, issue.id)}
+            onCancel={() => setTitle(issue.title)}
             className="p-2 text-slate-100 text-xs"
             onClick={(e) => e.stopPropagation()}
           />
@@ -66,6 +67,15 @@ export default function IssueDetail({ issue, onClick }: Props) {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             onBlur={() => handlePatch(null, description, issue.id)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                handlePatch(null, description, issue.id)
+              } else if (e.key === 'Escape') {
+                e.preventDefault()
+                setDescription(issue.description)
+              }
+            }}
             className="p-2 text-slate-100 text-xs whitespace-pre-wrap"
             onClick={(e) => e.stopPropagation()}
           />

@@ -42,7 +42,7 @@ function App() {
     fetchIssueLists()
   }, [])
 
-  
+
   const handleCreateList = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newListTitle.trim()) return
@@ -92,27 +92,109 @@ function App() {
   }
 
   const handleCreateIssue = async (listId: number, title: string, description: string) => {
+    // Create temporary issue with negative ID
+    const tempId = -Date.now()
+    const tempIssue: Issue = {
+      id: tempId,
+      title,
+      description,
+      listId,
+      status: 'UNASSIGNED'
+    }
+
+    // Optimistically add to state
+    setIssuesByListId(prev => {
+      const newList = [...(prev[listId] || []), tempIssue]
+      const newState = { ...prev }
+      newState[listId] = newList
+      return newState
+    })
+
     try {
-      const createdIssue: Issue = await createIssue({ title, description, listId, status: 'UNASSIGNED' })
-      // Optimistically add the issue to the list with the correct listId
-      const issueWithListId = { ...createdIssue, listId }
-      setIssuesByListId(prev => ({
-        ...prev,
-        [listId]: [...(prev[listId] || []), issueWithListId]
-      }))
+      const createdIssue = await createIssue({ title, description, listId, status: 'UNASSIGNED' })
+      // Replace temporary issue with real one
+      setIssuesByListId(prev => {
+        const listIssues = prev[listId] || []
+        const index = listIssues.findIndex(issue => issue.id === tempId)
+        if (index !== -1) {
+          const newList = [...listIssues]
+          newList[index] = createdIssue
+          const newState = { ...prev }
+          newState[listId] = newList
+          return newState
+        }
+        return prev
+      })
     } catch (error) {
+      // Rollback: remove temporary issue
+      setIssuesByListId(prev => {
+        const listIssues = prev[listId] || []
+        const index = listIssues.findIndex(issue => issue.id === tempId)
+        if (index !== -1) {
+          const newList = [...listIssues]
+          newList.splice(index, 1)
+          const newState = { ...prev }
+          newState[listId] = newList
+          return newState
+        }
+        return prev
+      })
       console.error('Failed to create issue:', error)
       // TODO: handle error, maybe show a notification
     }
   }
 
   const handleDeleteIssue = async (id: number) => {
+    // Find the issue in the current state to store for rollback
+    let issueToRestore: Issue | null = null
+    let listIdContainingIssue: number | null = null
+
+    // We need to iterate over the current state to find the issue
+    for (const listIdStr in issuesByListId) {
+      const listIdNum = Number(listIdStr)
+      const listIssues = issuesByListId[listIdStr]
+      const idx = listIssues.findIndex(issue => issue.id === id)
+      if (idx !== -1) {
+        issueToRestore = listIssues[idx]
+        listIdContainingIssue = listIdNum
+        break
+      }
+    }
+
+    // If issue not found, return early
+    if (!issueToRestore || listIdContainingIssue === null) {
+      console.warn(`Attempted to delete non-existent issue with id ${id}`)
+      return
+    }
+
+    // Optimistically remove from state
+    setIssuesByListId(prev => {
+      const listIssues = prev[listIdContainingIssue] || []
+      const newList = [...listIssues]
+      const index = newList.findIndex(issue => issue.id === id)
+      if (index !== -1) {
+        newList.splice(index, 1)
+        const newState = { ...prev }
+        newState[listIdContainingIssue] = newList
+        return newState
+      }
+      return prev
+    })
+
     try {
       await deleteIssue(id)
-      // Refetch all lists and issues
-      await fetchIssueLists()
+      // On success, do nothing (issue already removed optimistically)
     } catch (error) {
+      // Rollback: restore the issue to its original list
+      setIssuesByListId(prev => {
+        const listIssues = prev[listIdContainingIssue] || []
+        const newList = [...listIssues, issueToRestore]
+        const newState = { ...prev }
+        newState[listIdContainingIssue] = newList
+        return newState
+      })
       console.error('Failed to delete issue:', error)
+      // TODO: handle error, maybe show a notification
     }
   }
 
@@ -249,11 +331,37 @@ function App() {
                           </form>
                         )}
                       </div>
+
+                      {import.meta.env.DEV && (
+                        <div className="fixed top-4 right-4 space-x-2">
+                        <a
+                        href="/dev/shader"
+                        className="text-xs text-slate-400 hover:text-slate-200"
+                        >
+                        Shader Dev
+                        </a>
+                        <a
+                        href="/dev/swagger"
+                        className="text-xs text-slate-400 hover:text-slate-200"
+                        >
+                        Swagger UI
+                        </a>
+                        </div>
+                      )}
                     </div>
                   </section>
                 }/>
                 {import.meta.env.DEV && (
+                  <>
                   <Route path="/dev/shader" element={<ShaderDevPage />} />
+                  <Route path="/dev/swagger" element={
+                    <iframe
+                    title="Swagger UI"
+                    style={{ width: '100%', height: '100vh', border: 'none' }}
+                    src="http://localhost:8080/swagger-ui.html"
+                    />
+                  } />
+                  </>
                 )}
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>

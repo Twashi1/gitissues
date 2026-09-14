@@ -5,3 +5,5 @@ Re-arrange issues within a list :: @ui $6 #todo created:2026-08-31 priority:high
 Loading issues indicator when no lists are shown :: @ui $7 #todo created:2026-09-13 priority:low;
 Document installation :: @docs $8 #todo created:2026-09-13 priority:low;
 Doxygen/endpoint documentation :: @docs $9 #todo created:2026-09-13 priority:low;
+Dashboard showing latest issues/sync'd changes :: @ui $10 #todo created:2026-09-14 priority:medium;
+No issues yet message shows when adding new issue to a list :: @ui $11 #todo created:2026-09-14 priority:low;
