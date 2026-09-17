@@ -3,8 +3,11 @@ package gitissues.issue
 import gitissues.dto.issue.IssueCreateRequest
 import gitissues.dto.issue.IssuePatchRequest
 import gitissues.dto.issue.IssueResponse
+import gitissues.event.IssueDeletedEvent
+import gitissues.event.IssueSavedEvent
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
@@ -12,22 +15,19 @@ import org.springframework.web.server.ResponseStatusException
 @Service
 class IssueService(
     private val repo: IssueRepository,
+    private val eventPublisher: ApplicationEventPublisher,
 ) {
     private val log = LoggerFactory.getLogger(IssueService::class.java)
 
-    fun all(): List<IssueResponse> = repo.findAllByOrderByIdDesc().map(Issue::toResponse)
+    fun all(): List<IssueResponse> = repo.findAllByOrderByIdDesc().map { it.toResponse() }
 
     fun getByListId(listId: Long): List<IssueResponse> = repo.findByListId(listId).map { it.toResponse() }
 
     fun get(id: Long): IssueResponse =
         repo
             .findById(id)
-            .orElseThrow {
-                ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "Issue $id not found",
-                )
-            }.toResponse()
+            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Issue $id not found") }
+            .toResponse()
 
     fun create(req: IssueCreateRequest): IssueResponse {
         val issue =
@@ -37,7 +37,9 @@ class IssueService(
                 status = req.status,
                 listId = if (req.listId != null && req.listId > 0) req.listId else null,
             )
-        return repo.save(issue).toResponse()
+        val saved = repo.save(issue)
+        eventPublisher.publishEvent(IssueSavedEvent(saved))
+        return saved.toResponse()
     }
 
     @Transactional
@@ -46,7 +48,14 @@ class IssueService(
             throw NoSuchElementException("Issue $id not found")
         }
 
+        // Load the entity for the event (optional, but we can pass it)
+        val issueToDelete =
+            repo
+                .findById(id)
+                .orElseThrow { NoSuchElementException("Issue $id not found") }
+
         repo.deleteById(id)
+        eventPublisher.publishEvent(IssueDeletedEvent(id, issueToDelete))
     }
 
     @Transactional
@@ -59,18 +68,15 @@ class IssueService(
         val issue =
             repo
                 .findById(id)
-                .orElseThrow {
-                    ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Issue $id not found",
-                    )
-                }
+                .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Issue $id not found") }
 
         issue.title = req.title ?: issue.title
         issue.description = req.description ?: issue.description
         issue.status = req.status ?: issue.status
         issue.listId = req.listId ?: issue.listId
 
-        return issue.toResponse()
+        val saved = repo.save(issue)
+        eventPublisher.publishEvent(IssueSavedEvent(saved))
+        return saved.toResponse()
     }
 }

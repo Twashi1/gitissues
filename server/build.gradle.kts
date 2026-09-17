@@ -12,7 +12,7 @@ version = "0.0.1-SNAPSHOT"
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
@@ -41,18 +41,12 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.mockito.kotlin:mockito-kotlin:6.1.0")
+    implementation(project(":gitissues-cli:kotlin:bindings"))
 }
 
 kotlin {
     compilerOptions {
         freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
-    }
-}
-
-sourceSets {
-    main {
-        kotlin.srcDir("kotlin-bindings/kotlin/bindings/src/main/kotlin")
-        java.srcDir("kotlin-bindings/kotlin/jni/java/src/main/java")
     }
 }
 
@@ -81,27 +75,26 @@ tasks.named("check") {
 
 tasks.named("build") {
     dependsOn("ktlintCheck")
-    dependsOn("buildNativeLibrary") // Add native library build as a dependency
+    dependsOn(":buildNativeLibrary")
 }
 
 tasks.register<Exec>("buildNativeLibrary") {
     group = "build"
     description = "Builds the native JNI library"
-    workingDir = file("kotlin-bindings")
-    // Configure and build the native library with JNI enabled
-    commandLine = listOf("bash", "-c", "cmake -S . -B build/kotlin -DBUILD_JNI=ON && cmake --build build/kotlin")
+    workingDir = file("gitissues-cli")
+    // Configure and build the native library with JNI enabled using preset from README
+    commandLine = listOf("bash", "-c", "cmake --preset kotlin && cmake --build --preset kotlin")
 }
 
 // Ensure the native library is built before running the application
 tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
     dependsOn("buildNativeLibrary")
-    jvmArgs("-Djava.library.path=$projectDir/kotlin-bindings/build/kotlin/kotlin/jni")
+    jvmArgs("-Djava.library.path=$projectDir/gitissues-cli/build/kotlin/kotlin/jni")
 }
 
-// Also ensure it's built when building the frontend resources (though build already depends on it)
+// Also ensure it's built when building the frontend resources
 tasks.named("processResources") {
     dependsOn("buildFrontend")
-    // Also depend on native library build to ensure it's available for processResources if needed
     dependsOn("buildNativeLibrary")
 }
 
@@ -113,6 +106,6 @@ tasks.register<Exec>("buildFrontend") {
 // Clean native library build when cleaning
 tasks.named("clean") {
     doLast {
-        delete(fileTree("kotlin-bindings/build"))
+        delete(fileTree("gitissues-cli/build/kotlin"))
     }
 }

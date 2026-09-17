@@ -5,6 +5,10 @@
     "date_format": "D-M"
 	},
 	"tags": {
+    "id": {
+      "type": "int64",
+      "required": true
+    },
 		"list": {
 			"type": "int64",
 			"required": false
