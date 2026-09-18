@@ -1,5 +1,18 @@
 rootProject.name = "gitissues"
 
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+}
+
 include(
     ":gitissues-cli:kotlin:jni",
     ":gitissues-cli:kotlin:bindings",

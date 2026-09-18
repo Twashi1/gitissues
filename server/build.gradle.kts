@@ -109,3 +109,7 @@ tasks.named("clean") {
         delete(fileTree("gitissues-cli/build/kotlin"))
     }
 }
+
+tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
+    archiveFileName.set("gitissues.jar")
+}

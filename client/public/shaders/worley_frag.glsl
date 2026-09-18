@@ -1,113 +1,172 @@
-precision mediump float;
+#version 300 es
+
+precision highp float;
+precision highp int;
 
 uniform float u_Scale;
-uniform int u_Seed;
+uniform int   u_Seed;
 uniform float u_AngularVelocity;
 uniform float u_Time;
 uniform float u_CellularDensity;
-uniform int u_Octaves;
+uniform int   u_Octaves;
 uniform float u_FractalScaling;
 uniform float u_Sharpness;
 uniform float u_ColorGamma;
 uniform float u_LuminosityOffset;
 uniform vec3  u_BaseColor;
-const float u_PI = 3.14159265358;
 uniform float u_BorderSize;
+uniform vec2  u_resolution;
 
-uniform vec2 u_resolution;
+out vec4 fragColor;
 
-vec2 random2(vec2 p) {
-    return fract(sin(vec2(dot(p,vec2(127.1 + float(u_Seed),311.7)),dot(p,vec2(269.5,183.3))))*43758.5453);
+const float PI = 3.14159265359;
+const float UINT_TO_FLOAT = 1.0 / 4294967296.0;
+
+uint hash(uint value) {
+    value ^= value >> 16u;
+    value *= 0x7feb352du;
+
+    value ^= value >> 15u;
+    value *= 0x846ca68bu;
+
+    value ^= value >> 16u;
+
+    return value;
 }
 
-vec2 rotated_random(vec2 p, vec2 matrix_left, vec2 matrix_right) {
-    const vec2 pivot = vec2(0.5, 0.5);
+uint hashCell(uvec2 cell) {
+    uint value =
+        cell.x * 0x9E3779B9u ^
+        cell.y * 0x85EBCA6Bu ^
+        uint(u_Seed);
 
-    vec2 random = random2(p) - pivot;
-    vec2 rotated = vec2(0.0, 0.0);
-    rotated.x = random.x * matrix_left.x + random.y * matrix_right.x;
-    rotated.y = random.x * matrix_left.y + random.y * matrix_right.y;
-    rotated += pivot;
-
-    return rotated;
+    return hash(value);
 }
 
-float random_float (float h) {
-    return fract(sin(h) * 43758.5453123);
+float cellRandom(uvec2 cell) {
+    return float(hashCell(cell)) * UINT_TO_FLOAT;
 }
 
-vec4 get_fluid_texture_level(float cellular_density) {
-    float alpha = 1.0;
+vec2 cellRandom2(uvec2 cell) {
+    uint x = hashCell(cell);
+    uint y = hashCell(
+        cell + uvec2(0x1234567Bu, 0x9E3779B9u)
+    );
 
-    vec2 v_texCoord = gl_FragCoord.xy / u_resolution;
-    vec2 uv = v_texCoord * u_Scale;
+    return vec2(
+        float(x) * UINT_TO_FLOAT,
+        float(y) * UINT_TO_FLOAT
+    );
+}
 
-    // Get angle
-    float angle = u_AngularVelocity * u_Time;
+vec2 rotateCellPoint(vec2 point, float angle) {
+    float c = cos(angle);
+    float s = sin(angle);
 
-    // Compute cos and sin of angle
-    float cos_angle = cos(angle);
-    float sin_angle = sin(angle);
+    vec2 offset = point - vec2(0.5);
 
-    // Rotation matrix
-    vec2 matrix_left = vec2(cos_angle, sin_angle);
-    vec2 matrix_right = vec2(-sin_angle,  cos_angle);
+    // Standard 2D rotation matrix.
+    offset = vec2(
+        offset.x * c - offset.y * s,
+        offset.x * s + offset.y * c
+    );
 
-    vec2 scaled_coords = uv * cellular_density;
-    vec2 current_poll_lattice = floor(scaled_coords);
-    vec2 current_poll_pos = fract(scaled_coords); // Position relative to lattice
+    return offset + vec2(0.5);
+}
 
-    // Is a vec3 so we can pass voronoi stuff if needed in future
-    vec3 result = vec3(1000.0, 0.0, 0.0);
+vec4 cellularNoise(float density) {
+    // Normalize fragment coordinates to [0, 1].
+    vec2 uv = gl_FragCoord.xy / u_resolution;
 
-    // Iterate each surrounding cell
-    for (int y = -2; y <= 2; y++) {
-        for (int x = -2; x <= 2; x++) {
-            vec2 lattice_offset = vec2(x, y);
-            vec2 random_point = rotated_random(lattice_offset + current_poll_lattice, matrix_left, matrix_right);
+    // Correct for viewport aspect ratio so cells remain approximately square.
+    uv.x *= u_resolution.x / u_resolution.y;
 
-            float dist = distance(lattice_offset + random_point, current_poll_pos);
+    uv *= u_Scale;
 
-            if (dist < result.x) {
-                result = vec3(dist, random_point.xy);
+    // Position in the cellular grid.
+    vec2 gridPosition = uv * density;
+
+    vec2 cell = floor(gridPosition);
+    vec2 localPosition = fract(gridPosition);
+
+    float nearestDistance = 1000.0;
+    vec2 nearestPoint = vec2(0.0);
+
+    // One angle for this entire noise layer.
+    // TODO: each cell should have its own rotation, this needs to be
+    // generated from the cell coordinate instead.
+    float rotationAngle = u_AngularVelocity * u_Time;
+
+    // Search neighboring cells.
+    for (int y = -2; y <= 2; ++y) {
+        for (int x = -2; x <= 2; ++x) {
+
+            ivec2 cellOffset = ivec2(x, y);
+            ivec2 cellCoordinate = ivec2(cell) + cellOffset;
+
+            // Convert signed lattice coordinate to uint hash input.
+            uvec2 hashCoordinate = uvec2(cellCoordinate);
+
+            // Generate deterministic point inside this cell.
+            vec2 randomPoint = cellRandom2(hashCoordinate);
+
+            // Rotate the point around the center of its cell.
+            randomPoint = rotateCellPoint(
+                randomPoint,
+                rotationAngle
+            );
+
+            // Position relative to the current cell.
+            vec2 pointOffset =
+                vec2(cellOffset) + randomPoint;
+
+            float distanceToPoint =
+                distance(pointOffset, localPosition);
+
+            if (distanceToPoint < nearestDistance) {
+                nearestDistance = distanceToPoint;
+                nearestPoint = randomPoint;
             }
         }
     }
 
-    result.x = pow(result.x, u_Sharpness);
+    // Shape the distance field.
+    float shapedDistance =
+        pow(nearestDistance, u_Sharpness);
 
-    vec3 result_color = pow(u_BaseColor * (result.x + u_LuminosityOffset), vec3(u_ColorGamma));
+    // Convert distance to color.
+    vec3 color = pow(
+        u_BaseColor * (shapedDistance + u_LuminosityOffset),
+        vec3(u_ColorGamma)
+    );
 
-    float dist_to_border = max(abs(v_texCoord.x - 0.5), abs(v_texCoord.y - 0.5));
-
-    if (dist_to_border > (0.5 - u_BorderSize)) {
-      alpha = smoothstep(0.0, 1.0, (0.5 - dist_to_border) / u_BorderSize);
-    }
-
-    return vec4(result_color.xyz, alpha);
+    return vec4(color, 1.0);
 }
 
-vec4 get_fluid_texture() {
-  float amplitude = 1.0;
-  float cellular_density = u_CellularDensity;
-  float totalAmplitude = 0.0;
-  vec4 color = vec4(0.0, 0.0, 0.0, 0.0);
+vec4 fractalCellularNoise() {
+    float amplitude = 1.0;
+    float density = u_CellularDensity;
 
-  for (int i = 0; i < 8; i++) {
-    if (i >= u_Octaves) break;
-    totalAmplitude += amplitude;
+    float amplitudeSum = 0.0;
+    vec4 accumulatedColor = vec4(0.0);
 
-    color += get_fluid_texture_level(cellular_density) * amplitude;
+    for (int octave = 0; octave < 8; ++octave) {
+        if (octave >= u_Octaves) {
+            break;
+        }
 
-    amplitude /= u_FractalScaling;
-    cellular_density *= u_FractalScaling;
-  }
+        accumulatedColor +=
+            cellularNoise(density) * amplitude;
 
-  return color / totalAmplitude;
+        amplitudeSum += amplitude;
+
+        amplitude /= u_FractalScaling;
+        density *= u_FractalScaling;
+    }
+
+    return accumulatedColor / amplitudeSum;
 }
 
 void main() {
-    vec4 fluid_color = get_fluid_texture();
-
-    gl_FragColor = fluid_color;
+    fragColor = fractalCellularNoise();
 }

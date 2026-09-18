@@ -51,7 +51,7 @@ export default function ShaderDevPage() {
     if (!canvasMaybeNull) return
 
     const canvas = canvasMaybeNull
-    const glMaybeNull = canvas.getContext('webgl')
+    const glMaybeNull = canvas.getContext('webgl2')
     if (!glMaybeNull) return
 
     const gl = glMaybeNull

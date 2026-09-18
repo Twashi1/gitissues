@@ -2,7 +2,11 @@ package gitissues.bindingsdemo
 
 import gitissues.GitIssues
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
 /**
  * Controller for testing the C library through Kotlin bindings.
@@ -13,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/bindings-demo")
 class BindingsDemoController {
-
     /**
      * Initialize the native library.
      * This calls GitIssues.init() which loads the native library and calls init().
@@ -82,7 +85,9 @@ class BindingsDemoController {
      * Demonstrates retrieving data from an issue through the native library.
      */
     @GetMapping("/get-tag/{tagName}")
-    fun getTag(@PathVariable tagName: String): ResponseEntity<String> {
+    fun getTag(
+        @PathVariable tagName: String,
+    ): ResponseEntity<String> {
         // TODO: Implement actual tag retrieval
         // Example usage:
         // val schema = GitIssues.loadSchema("path/to/your/schema.iff")
@@ -97,7 +102,9 @@ class BindingsDemoController {
      * Demonstrates checking for tags through the native library.
      */
     @GetMapping("/has-tag/{tagName}")
-    fun hasTag(@PathVariable tagName: String): ResponseEntity<String> {
+    fun hasTag(
+        @PathVariable tagName: String,
+    ): ResponseEntity<String> {
         // TODO: Implement actual tag checking
         // Example usage:
         // val schema = GitIssues.loadSchema("path/to/your/schema.iff")

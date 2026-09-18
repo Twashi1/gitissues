@@ -6,6 +6,8 @@ Desktop application built with Electron and React.
 
 ## Building 
 
+- Java 21
+
 Build frontend/backend and package as jar.
 ```bash
 cd server
@@ -14,6 +16,6 @@ cd server
 
 Run with Electron.
 ```bash
-cd Electron
+cd electron
 npm start
 ```

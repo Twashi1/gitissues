@@ -8,7 +8,7 @@ export default function WorleyBackground() {
     if (!canvasMaybeNull) return
 
     const canvas = canvasMaybeNull
-    const glMaybeNull = canvas.getContext('webgl')
+    const glMaybeNull = canvas.getContext('webgl2')
     if (!glMaybeNull) return
 
     const gl = glMaybeNull
@@ -135,10 +135,19 @@ export default function WorleyBackground() {
         function resize() {
           if (!canvas) return
 
-          const dpr = window.devicePixelRatio || 1
-          canvas.width = window.innerWidth * dpr
-          canvas.height = window.innerHeight * dpr
-          gl.viewport(0, 0, canvas.width, canvas.height)
+            const dpr = window.devicePixelRatio || 1
+
+            canvas.width = Math.floor(window.innerWidth * dpr)
+            canvas.height = Math.floor(window.innerHeight * dpr)
+
+            canvas.style.width = `${window.innerWidth}px`
+            canvas.style.height = `${window.innerHeight}px`
+
+            gl.viewport(0, 0, canvas.width, canvas.height)
+
+            if (resolutionLocation !== null) {
+              gl.uniform2f(resolutionLocation, canvas.width, canvas.height)
+            }
         }
 
         window.addEventListener('resize', resize)

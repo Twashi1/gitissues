@@ -18,6 +18,7 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.reset
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
 
@@ -25,6 +26,9 @@ import org.springframework.web.server.ResponseStatusException
 class IssueServiceTest {
     @Mock
     private lateinit var repo: IssueRepository
+
+    @Mock
+    private lateinit var eventPublisher: ApplicationEventPublisher
 
     @InjectMocks
     private lateinit var service: IssueService
@@ -222,12 +226,14 @@ class IssueServiceTest {
     fun `test delete calls repository when issue exists`() {
         // Arrange
         whenever(repo.existsById(1L)).thenReturn(true)
+        whenever(repo.findById(1L)).thenReturn(java.util.Optional.of(testIssue))
 
         // Act
         service.delete(1L)
 
         // Assert
         verify(repo).existsById(1L)
+        verify(repo).findById(1L)
         verify(repo).deleteById(1L)
     }
 
@@ -283,6 +289,11 @@ class IssueServiceTest {
             )
 
         whenever(repo.findById(1L)).thenReturn(java.util.Optional.of(issueToUpdate))
+        whenever(repo.save(any())).thenAnswer { invocation ->
+            val issue = invocation.getArgument(0) as Issue
+            // Return the issue with any modifications applied
+            issue
+        }
 
         // Act
         val result = service.patch(1L, patchRequest)
@@ -290,8 +301,7 @@ class IssueServiceTest {
         // Assert
         assertEquals(expectedResponse, result)
         verify(repo).findById(1L)
-        // Note: We don't verify save() because the service modifies the entity directly
-        // and Spring Data JPA will auto-flush at transaction completion
+        verify(repo).save(any())
     }
 
     @Test

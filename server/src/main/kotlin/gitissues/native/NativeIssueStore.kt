@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component
  */
 @Component
 class NativeIssueStore {
-
     /**
      * Called after an Issue is INSERTED or UPDATED in SQLite.
      *
@@ -35,7 +34,10 @@ class NativeIssueStore {
      * @param issueId the primary key of the removed row
      * @param issue   the original Issue entity (may be null if you didn't pass it in the event)
      */
-    fun forwardDeleted(issueId: Long, issue: Issue?) {
+    fun forwardDeleted(
+        issueId: Long,
+        issue: Issue?,
+    ) {
         // TODO: Implement your native call, e.g.
         // NativeLibrary.issueDelete(issueId)
         System.out.println("[NativeStore] Deleted issue $issueId")
