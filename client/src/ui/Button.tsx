@@ -22,7 +22,7 @@ export default function Button({
         focusRing,
         {
           'bg-slate-600 text-white hover:bg-slate-500': variant === 'primary',
-          'bg-slate-700 text-white hover:bg-slate-650': variant === 'secondary',
+          'bg-slate-700 text-white hover:bg-slate-600': variant === 'secondary',
           'bg-sky-700 text-white hover:bg-sky-600': variant === 'tertiary',
           'bg-red-600 text-white hover:bg-red-500': variant === 'danger',
           'bg-slate-800/80 text-slate-100 hover:bg-slate-700/80 hover:text-slate-200 text-lg font-medium': variant === 'list-title',

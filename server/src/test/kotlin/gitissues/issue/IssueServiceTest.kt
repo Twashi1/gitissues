@@ -33,8 +33,10 @@ class IssueServiceTest {
     @InjectMocks
     private lateinit var service: IssueService
 
+    private val testIssueId = IssueId(1L, 1L)
     private val testIssue =
         Issue(
+            projectId = 1L,
             id = 1L,
             title = "Test Issue",
             description = "Test Description",
@@ -59,57 +61,58 @@ class IssueServiceTest {
     @Test
     fun `test all returns all issues`() {
         // Arrange
-        whenever(repo.findAllByOrderByIdDesc()).thenReturn(listOf(testIssue))
+        whenever(repo.findAllByProjectIdOrderByIdDesc(1L)).thenReturn(listOf(testIssue))
 
         // Act
-        val result = service.all()
+        val result = service.all(1L)
 
         // Assert
         assertEquals(1, result.size)
         assertEquals(testIssueResponse, result[0])
-        verify(repo).findAllByOrderByIdDesc()
+        verify(repo).findAllByProjectIdOrderByIdDesc(1L)
     }
 
     @Test
     fun `test getByListId returns issues for list`() {
         // Arrange
-        whenever(repo.findByListId(1L)).thenReturn(listOf(testIssue))
+        whenever(repo.findByProjectIdAndListId(1L, 1L)).thenReturn(listOf(testIssue))
 
         // Act
-        val result = service.getByListId(1L)
+        val result = service.getByListId(1L, 1L)
 
         // Assert
         assertEquals(1, result.size)
         assertEquals(testIssueResponse, result[0])
-        verify(repo).findByListId(1L)
+        verify(repo).findByProjectIdAndListId(1L, 1L)
     }
 
     @Test
     fun `test get returns issue when found`() {
         // Arrange
-        whenever(repo.findById(1L)).thenReturn(java.util.Optional.of(testIssue))
+        whenever(repo.findById(testIssueId)).thenReturn(java.util.Optional.of(testIssue))
 
         // Act
-        val result = service.get(1L)
+        val result = service.get(1L, 1L)
 
         // Assert
         assertEquals(testIssueResponse, result)
-        verify(repo).findById(1L)
+        verify(repo).findById(testIssueId)
     }
 
     @Test
     fun `test get throws exception when issue not found`() {
         // Arrange
-        whenever(repo.findById(999L)).thenReturn(java.util.Optional.empty())
+        val nonExistentId = IssueId(1L, 999L)
+        whenever(repo.findById(nonExistentId)).thenReturn(java.util.Optional.empty())
 
         // Act & Assert
         val exception =
             assertThrows(ResponseStatusException::class.java) {
-                service.get(999L)
+                service.get(1L, 999L)
             }
         assertEquals(HttpStatus.NOT_FOUND, exception.statusCode)
         assertTrue(exception.reason?.contains("Issue 999 not found") == true)
-        verify(repo).findById(999L)
+        verify(repo).findById(nonExistentId)
     }
 
     @Test
@@ -124,6 +127,7 @@ class IssueServiceTest {
             )
         val issueToSave =
             Issue(
+                projectId = 1L,
                 id = 0L,
                 title = "New Issue",
                 description = "New Description",
@@ -132,6 +136,7 @@ class IssueServiceTest {
             )
         val savedIssue =
             Issue(
+                projectId = 1L,
                 id = 1L,
                 title = "New Issue",
                 description = "New Description",
@@ -151,6 +156,7 @@ class IssueServiceTest {
             val issue = invocation.getArgument(0) as Issue
             // Create a new instance with the ID set since id is val in the entity
             Issue(
+                projectId = issue.projectId,
                 id = 1L,
                 title = issue.title,
                 description = issue.description,
@@ -160,7 +166,7 @@ class IssueServiceTest {
         }
 
         // Act
-        val result = service.create(createRequest)
+        val result = service.create(1L, createRequest)
 
         // Assert
         assertEquals(expectedResponse, result)
@@ -179,6 +185,7 @@ class IssueServiceTest {
             )
         val issueToSave =
             Issue(
+                projectId = 1L,
                 id = 0L,
                 title = "New Issue",
                 description = "New Description",
@@ -187,6 +194,7 @@ class IssueServiceTest {
             )
         val savedIssue =
             Issue(
+                projectId = 1L,
                 id = 1L,
                 title = "New Issue",
                 description = "New Description",
@@ -206,6 +214,7 @@ class IssueServiceTest {
             val issue = invocation.getArgument(0) as Issue
             // Create a new instance with the ID set since id is val in the entity
             Issue(
+                projectId = issue.projectId,
                 id = 1L,
                 title = issue.title,
                 description = issue.description,
@@ -215,7 +224,7 @@ class IssueServiceTest {
         }
 
         // Act
-        val result = service.create(createRequest)
+        val result = service.create(1L, createRequest)
 
         // Assert
         assertEquals(expectedResponse, result)
@@ -225,31 +234,33 @@ class IssueServiceTest {
     @Test
     fun `test delete calls repository when issue exists`() {
         // Arrange
-        whenever(repo.existsById(1L)).thenReturn(true)
-        whenever(repo.findById(1L)).thenReturn(java.util.Optional.of(testIssue))
+        val issueId = IssueId(1L, 1L)
+        whenever(repo.existsById(issueId)).thenReturn(true)
+        whenever(repo.findById(issueId)).thenReturn(java.util.Optional.of(testIssue))
 
         // Act
-        service.delete(1L)
+        service.delete(1L, 1L)
 
         // Assert
-        verify(repo).existsById(1L)
-        verify(repo).findById(1L)
-        verify(repo).deleteById(1L)
+        verify(repo).existsById(issueId)
+        verify(repo).findById(issueId)
+        verify(repo).deleteById(issueId)
     }
 
     @Test
     fun `test delete throws exception when issue not found`() {
         // Arrange
-        whenever(repo.existsById(999L)).thenReturn(false)
+        val nonExistentId = IssueId(1L, 999L)
+        whenever(repo.existsById(nonExistentId)).thenReturn(false)
 
         // Act & Assert
         val exception =
             assertThrows(NoSuchElementException::class.java) {
-                service.delete(999L)
+                service.delete(1L, 999L)
             }
         assertNotNull(exception.message)
         assertTrue(exception.message!!.contains("Issue 999 not found"))
-        verify(repo).existsById(999L)
+        verify(repo).existsById(nonExistentId)
         verify(repo, never()).deleteById(any())
     }
 
@@ -265,6 +276,7 @@ class IssueServiceTest {
             )
         val issueToUpdate =
             Issue(
+                projectId = 1L,
                 id = 1L,
                 title = "Original Title",
                 description = "Original Description",
@@ -273,6 +285,7 @@ class IssueServiceTest {
             )
         val updatedIssue =
             Issue(
+                projectId = 1L,
                 id = 1L,
                 title = "Updated Title",
                 description = "Original Description",
@@ -288,7 +301,8 @@ class IssueServiceTest {
                 listId = 2L,
             )
 
-        whenever(repo.findById(1L)).thenReturn(java.util.Optional.of(issueToUpdate))
+        val issueId = IssueId(1L, 1L)
+        whenever(repo.findById(issueId)).thenReturn(java.util.Optional.of(issueToUpdate))
         whenever(repo.save(any())).thenAnswer { invocation ->
             val issue = invocation.getArgument(0) as Issue
             // Return the issue with any modifications applied
@@ -296,11 +310,11 @@ class IssueServiceTest {
         }
 
         // Act
-        val result = service.patch(1L, patchRequest)
+        val result = service.patch(1L, 1L, patchRequest)
 
         // Assert
         assertEquals(expectedResponse, result)
-        verify(repo).findById(1L)
+        verify(repo).findById(issueId)
         verify(repo).save(any())
     }
 
@@ -314,15 +328,16 @@ class IssueServiceTest {
                 status = null,
                 listId = null,
             )
-        whenever(repo.findById(999L)).thenReturn(java.util.Optional.empty())
+        val nonExistentId = IssueId(1L, 999L)
+        whenever(repo.findById(nonExistentId)).thenReturn(java.util.Optional.empty())
 
         // Act & Assert
         val exception =
             assertThrows(ResponseStatusException::class.java) {
-                service.patch(999L, patchRequest)
+                service.patch(1L, 999L, patchRequest)
             }
         assertEquals(HttpStatus.NOT_FOUND, exception.statusCode)
         assertTrue(exception.reason?.contains("Issue 999 not found") == true)
-        verify(repo).findById(999L)
+        verify(repo).findById(nonExistentId)
     }
 }

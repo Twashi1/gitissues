@@ -10,20 +10,21 @@ type Props = {
 export default function IssueButton({ issue, onClick, onDelete }: Props) {
   // TODO: add focus ring
   return (
-    <div className="relative">
-      <div onClick={onClick} className="flex items-center gap-2 rounded-md bg-slate-700 p-2 opacity-90 transition-colors border border-slate-500 hover:bg-slate-600">
-        <span className="flex-1 text-base">{issue.title}</span>
+    <div
+      onClick={onClick}
+      className="flex w-full items-center gap-2 rounded-md bg-slate-700 p-2 opacity-90 transition-colors border border-slate-500 hover:bg-slate-600 justify-between"
+    >
+      <span className="flex-1 text-base">{issue.title}</span>
 
-        <Button variant='secondary' onClick={(e) => {
-            e.stopPropagation()
-            onDelete(issue.id)
-          }}
-          className="px-2 py-1 text-red-700 text-md hover:bg-slate-600"
-          aria-label={`Delete ${issue.title}`}
-        >
-          🗑️
-        </Button>
-      </div>
+      <Button variant='secondary' onClick={(e) => {
+          e.stopPropagation()
+          onDelete(issue.id)
+        }}
+        className="px-2 py-1 text-red-700 text-md hover:bg-slate-600"
+        aria-label={`Delete ${issue.title}`}
+      >
+        🗑️
+      </Button>
     </div>
   )
 }

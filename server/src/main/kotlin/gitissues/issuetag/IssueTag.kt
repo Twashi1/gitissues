@@ -14,10 +14,13 @@ import tools.jackson.databind.ObjectMapper
 @IdClass(IssueTagId::class)
 class IssueTag(
     @Id
-    @Column(name = "issue_id", columnDefinition = "INTEGER")
+    @Column(name = "project_id", nullable = false)
+    var projectId: Long = 0L,
+    @Id
+    @Column(name = "issue_id", nullable = false)
     var issueId: Long = 0,
     @Id
-    @Column(name = "tag_id", columnDefinition = "INTEGER")
+    @Column(name = "tag_id", nullable = false)
     var tagId: Long = 0,
     @Column(columnDefinition = "text")
     var value: String? = null,

@@ -9,21 +9,28 @@ class IssueTagService(
     private val repo: IssueTagRepository,
     private val objectMapper: ObjectMapper,
 ) {
-    fun allForIssue(issueId: Long): List<IssueTagResponse> =
+    fun allForIssue(
+        projectId: Long,
+        issueId: Long,
+    ): List<IssueTagResponse> =
         repo
-            .findAllByIssueId(issueId)
+            .findAllByProjectIdAndIssueId(projectId, issueId)
             .map { it.toResponse(objectMapper) }
 
-    fun allForTag(tagId: Long): List<IssueTagResponse> =
+    fun allForTag(
+        projectId: Long,
+        tagId: Long,
+    ): List<IssueTagResponse> =
         repo
-            .findAllByTagId(tagId)
+            .findAllByProjectIdAndTagId(projectId, tagId)
             .map { it.toResponse(objectMapper) }
 
     fun get(
+        projectId: Long,
         issueId: Long,
         tagId: Long,
     ): IssueTagResponse? =
         repo
-            .findByIssueIdAndTagId(issueId, tagId)
+            .findByProjectIdAndIssueIdAndTagId(projectId, issueId, tagId)
             ?.toResponse(objectMapper)
 }

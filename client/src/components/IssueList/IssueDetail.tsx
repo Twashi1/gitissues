@@ -3,14 +3,16 @@ import TextArea from '../../ui/TextArea'
 import Input from '../../ui/Input'
 import { useState, useEffect } from 'react'
 import { useQueryClient, useMutation } from '@tanstack/react-query'
-import { patchIssue } from '../../services/issues'
+import { patchIssueByProject, patchIssue } from '../../services/issues'
 
 type Props = {
   issue: Issue
   onClick: () => void
+  projectId?: number
+  onUpdateIssue: (issueId: number, title: string | null, description: string | null) => void
 }
 
-export default function IssueDetail({ issue, onClick }: Props) {
+export default function IssueDetail({ issue, onClick, projectId, onUpdateIssue }: Props) {
   const [title, setTitle] = useState(issue.title);
   const [description, setDescription] = useState(issue.description);
   const queryClient = useQueryClient()
@@ -23,9 +25,16 @@ export default function IssueDetail({ issue, onClick }: Props) {
   }, [issue.description])
 
   const mutation = useMutation({
-    mutationFn: patchIssue,
-    onSuccess: () => {
+    mutationFn: async ({ projectId, data }: { projectId?: number; data: IssuePatchVariables }) => {
+      if (projectId !== undefined) {
+        return patchIssueByProject(projectId, data)
+      } else {
+        return patchIssue(data)
+      }
+    },
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['issues'] })
+      onUpdateIssue(variables.data.id, variables.data.request.title ?? null, variables.data.request.description ?? null)
     },
   })
 
@@ -34,12 +43,13 @@ export default function IssueDetail({ issue, onClick }: Props) {
     if (title !== null) { data.title = title }
     if (description !== null) { data.description = description }
 
-    const variables: IssuePatchVariables = {
-      id: id,
-      request: data
-    }
-
-    mutation.mutate(variables)
+    mutation.mutate({
+      projectId: projectId,
+      data: {
+        id: id,
+        request: data
+      }
+    })
   }
 
   return (

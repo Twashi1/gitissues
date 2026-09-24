@@ -27,6 +27,35 @@ export async function getIssues(listId?: number): Promise<Issue[]> {
   return response.json() as Promise<Issue[]>
 }
 
+export async function createIssueByProject(projectId: number, data: IssueCreateRequest): Promise<Issue> {
+  const response = await fetch(`/api/projects/${projectId}/issue`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to create issue for project')
+  }
+
+  return response.json() as Promise<Issue>
+}
+
+export async function getIssuesByProject(projectId: number, listId?: number): Promise<Issue[]> {
+  const url = listId
+    ? `/api/projects/${projectId}/issue?listId=${listId}`
+    : `/api/projects/${projectId}/issue`
+  const response = await fetch(url)
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch issues for project')
+  }
+
+  return response.json() as Promise<Issue[]>
+}
+
 export async function deleteIssue(id: number): Promise<void> {
   const response = await fetch(`/api/issue/${id}`, {
     method: 'DELETE',
@@ -34,6 +63,16 @@ export async function deleteIssue(id: number): Promise<void> {
 
   if (!response.ok) {
     throw new Error('Failed to delete issue')
+  }
+}
+
+export async function deleteIssueByProject(projectId: number, id: number): Promise<void> {
+  const response = await fetch(`/api/projects/${projectId}/issue/${id}`, {
+    method: 'DELETE',
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to delete issue for project')
   }
 }
 
@@ -53,6 +92,22 @@ export async function patchIssue(data: IssuePatchVariables): Promise<Issue> {
   return response.json() as Promise<Issue>
 }
 
+export async function patchIssueByProject(projectId: number, data: IssuePatchVariables): Promise<Issue> {
+  const response = await fetch(`/api/projects/${projectId}/issue/${data.id}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data.request),
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to patch issue for project')
+  }
+
+  return response.json() as Promise<Issue>
+}
+
 export async function moveIssue(issueId: number, listId: number): Promise<void> {
   const response = await fetch(`/api/issue/${issueId}`, {
     method: 'PATCH',
@@ -64,5 +119,19 @@ export async function moveIssue(issueId: number, listId: number): Promise<void> 
 
   if (!response.ok) {
     throw new Error('Failed to move issue')
+  }
+}
+
+export async function moveIssueByProject(projectId: number, issueId: number, listId: number): Promise<void> {
+  const response = await fetch(`/api/projects/${projectId}/issue/${issueId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ listId }),
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to move issue for project')
   }
 }

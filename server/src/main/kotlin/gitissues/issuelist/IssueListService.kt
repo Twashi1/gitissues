@@ -3,6 +3,7 @@ package gitissues.issuelist
 import gitissues.dto.issuelist.IssueListCreateRequest
 import gitissues.dto.issuelist.IssueListPatchRequest
 import gitissues.dto.issuelist.IssueListResponse
+import gitissues.issuelist.IssueList
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -14,45 +15,58 @@ class IssueListService(
 ) {
     private val log = LoggerFactory.getLogger(IssueListService::class.java)
 
-    fun all(): List<IssueListResponse> = repository.findAll().map { it.toResponse() }
+    fun all(projectId: Long): List<IssueListResponse> = repository.findAllByProjectIdOrderByIdDesc(projectId).map { it.toResponse() }
 
-    fun get(id: Long): IssueListResponse =
+    fun get(projectId: Long, id: Long): IssueListResponse =
         repository
-            .findById(id)
-            .orElseThrow { IllegalArgumentException("IssueList $id not found") }
+            .findById(IssueListId(projectId, id))
+            .orElseThrow { IllegalArgumentException("IssueList $id not found in project $projectId") }
             .toResponse()
 
     @Transactional
-    fun create(req: IssueListCreateRequest): IssueListResponse {
+    fun create(projectId: Long, req: IssueListCreateRequest): IssueListResponse {
+        val maxId = repository.findMaxIdByProjectId(projectId)
+        val nextId = if (maxId == null) 1L else maxId + 1
         val issueList =
             IssueList(
+                projectId = projectId,
+                id = nextId,
                 title = req.title,
             )
         return repository.save(issueList).toResponse()
     }
 
     @Transactional
-    fun delete(id: Long) {
-        if (!repository.existsById(id)) {
-            throw IllegalArgumentException("IssueList $id not found")
+    fun delete(projectId: Long, id: Long) {
+        val issueListId = IssueListId(projectId, id)
+        if (!repository.existsById(issueListId)) {
+            throw IllegalArgumentException("IssueList $id not found in project $projectId")
         }
         // First, remove the listId from all issues that reference this list
         issueRepository.updateListIdToNullByListId(id)
         // Then delete the list
-        repository.deleteById(id)
+        repository.deleteById(issueListId)
     }
 
     @Transactional
     fun patch(
+        projectId: Long,
         id: Long,
         req: IssueListPatchRequest,
     ): IssueListResponse {
+        val issueListId = IssueListId(projectId, id)
         val issueList =
             repository
-                .findById(id)
-                .orElseThrow { IllegalArgumentException("IssueList $id not found") }
+                .findById(issueListId)
+                .orElseThrow { IllegalArgumentException("IssueList $id not found in project $projectId") }
 
-        val updatedList = issueList.copy(title = req.title ?: issueList.title)
+        val updatedTitle = req.title ?: issueList.title
+        val updatedList = IssueList(
+            projectId = issueList.projectId,
+            id = issueList.id,
+            title = updatedTitle,
+            createdAt = issueList.createdAt
+        )
         return repository.save(updatedList).toResponse()
     }
 }

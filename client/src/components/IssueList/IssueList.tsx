@@ -9,18 +9,21 @@ type Props = {
   listId: number
   title: string
   issues: Issue[]
+  projectId?: number
   onUpdateTitle: (listId: number, title: string) => void
   onDeleteList: (listId: number) => void
   onDeleteIssue: (issueId: number) => void
-  onCreateIssue: (listId: number, title: string, description: string) => void
+  onCreateIssue: (listId: number, title: string, description: string, status: string) => void
   onMoveIssue: (issueId: number, targetListId: number) => Promise<void>
+  onUpdateIssue: (issueId: number, title: string | null, description: string | null) => void
 }
 
-export default function IssueList({ listId, title, issues, onUpdateTitle, onDeleteList, onDeleteIssue, onCreateIssue, onMoveIssue }: Props) {
+export default function IssueList({ listId, title, issues, onUpdateTitle, onDeleteList, onDeleteIssue, onCreateIssue, onMoveIssue, projectId, onUpdateIssue }: Props) {
   const [editTitle, setEditTitle] = useState(title)
   const [showNewIssueForm, setShowNewIssueForm] = useState(false)
   const [newIssueTitle, setNewIssueTitle] = useState('')
   const [newIssueDescription, setNewIssueDescription] = useState('')
+  const [newIssueStatus, setNewIssueStatus] = useState<'UNASSIGNED' | 'IN_PROGRESS' | 'COMPLETED' | 'ARCHIVED'>('UNASSIGNED')
   const [dragOverCount, setDragOverCount] = useState(0)
   const isOver = dragOverCount > 0
 
@@ -78,9 +81,10 @@ export default function IssueList({ listId, title, issues, onUpdateTitle, onDele
   const handleNewIssueSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (newIssueTitle.trim()) {
-      onCreateIssue(listId, newIssueTitle, newIssueDescription)
+      onCreateIssue(listId, newIssueTitle, newIssueDescription, newIssueStatus)
       setNewIssueTitle('')
       setNewIssueDescription('')
+      setNewIssueStatus('UNASSIGNED')
       setShowNewIssueForm(false)
     }
   }
@@ -88,6 +92,7 @@ export default function IssueList({ listId, title, issues, onUpdateTitle, onDele
   const handleNewIssueCancel = () => {
     setNewIssueTitle('')
     setNewIssueDescription('')
+    setNewIssueStatus('UNASSIGNED')
     setShowNewIssueForm(false)
   }
 
@@ -120,10 +125,16 @@ export default function IssueList({ listId, title, issues, onUpdateTitle, onDele
       {/* Horizontal spacer line */}
       <div className="h-0.5 bg-slate-600 my-2"></div>
 
-      {issues.length > 0 ? (
+      {issues.length > 0 || showNewIssueForm ? (
         <>
           {issues.map((issue) => (
-            <IssueListItem key={issue.id} issue={issue} onDelete={(id) => onDeleteIssue(id)} />
+            <IssueListItem
+              key={issue.id}
+              issue={issue}
+              onDelete={(id) => onDeleteIssue(id)}
+              projectId={projectId}
+              onUpdateIssue={onUpdateIssue}
+            />
           ))}
         </>
       ) : (
@@ -147,6 +158,19 @@ export default function IssueList({ listId, title, issues, onUpdateTitle, onDele
             onChange={(e) => setNewIssueDescription(e.target.value)}
             className="border border-slate-600 bg-slate-800 text-slate-100 rounded"
           />
+          <div className="flex items-center gap-3">
+            <label className="text-sm font-medium">Status:</label>
+            <select
+              value={newIssueStatus}
+              onChange={(e) => setNewIssueStatus(e.target.value as 'UNASSIGNED' | 'IN_PROGRESS' | 'COMPLETED' | 'ARCHIVED')}
+              className="px-3 py-2 border border-slate-600 rounded bg-slate-700 text-slate-100"
+            >
+              <option value="UNASSIGNED">Unassigned</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="ARCHIVED">Archived</option>
+            </select>
+          </div>
           <div className="flex gap-2 justify-end">
             <Button variant="secondary" onClick={handleNewIssueCancel} className="border border-slate-600">
               Cancel

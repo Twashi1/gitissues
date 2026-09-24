@@ -5,11 +5,18 @@ import gitissues.issuetag.IssueTagId
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface IssueTagRepository : JpaRepository<IssueTag, IssueTagId> {
-    fun findAllByIssueId(issueId: Long): List<IssueTag>
+    fun findAllByProjectIdAndIssueId(
+        projectId: Long,
+        issueId: Long,
+    ): List<IssueTag>
 
-    fun findAllByTagId(tagId: Long): List<IssueTag>
+    fun findAllByProjectIdAndTagId(
+        projectId: Long,
+        tagId: Long,
+    ): List<IssueTag>
 
-    fun findByIssueIdAndTagId(
+    fun findByProjectIdAndIssueIdAndTagId(
+        projectId: Long,
         issueId: Long,
         tagId: Long,
     ): IssueTag?

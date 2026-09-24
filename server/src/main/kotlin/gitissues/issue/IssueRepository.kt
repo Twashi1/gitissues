@@ -5,10 +5,13 @@ import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.transaction.annotation.Transactional
 
-interface IssueRepository : JpaRepository<Issue, Long> {
-    fun findAllByOrderByIdDesc(): List<Issue>
+interface IssueRepository : JpaRepository<Issue, IssueId> {
+    fun findAllByProjectIdOrderByIdDesc(projectId: Long): List<Issue>
 
-    fun findByListId(listId: Long): List<Issue>
+    fun findByProjectIdAndListId(projectId: Long, listId: Long): List<Issue>
+
+    @Query("SELECT MAX(i.id) FROM Issue i WHERE i.projectId = ?1")
+    fun findMaxIdByProjectId(projectId: Long): Long?
 
     @Transactional
     @Modifying

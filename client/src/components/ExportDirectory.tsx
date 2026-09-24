@@ -2,14 +2,18 @@ import { useState, useRef } from 'react'
 import Input from '../ui/Input'
 import Button from '../ui/Button'
 
-export default function ExportDirectory({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [exportPath, setExportPath] = useState('')
+export default function ExportDirectory({ open, onClose, initial, onSubmit }: { open: boolean; onClose: () => void; initial: string; onSubmit: (value: string) => void }) {
+  const [exportPath, setExportPath] = useState<string>(initial)
   const directoryInputRef = useRef<HTMLInputElement | null>(null)
 
   if (!open) return null;
 
   const handlePathChange = (value: string) => {
     setExportPath(value)
+  }
+
+  const handleSubmit = (value: string) => {
+    onSubmit(value)
   }
 
   const handleDirectoryClick = () => {
@@ -25,9 +29,11 @@ export default function ExportDirectory({ open, onClose }: { open: boolean; onCl
       if ((file as any).path) {
         // @ts-ignore: Electron provides path property on File objects
         setExportPath((file as any).path)
+        handleSubmit((file as any).path)
       } else {
         // Fallback for non-Electron environments
         setExportPath(file.name || '')
+        handleSubmit(file.name || '')
       }
     }
     // Reset the input value to allow selecting the same directory again
@@ -58,6 +64,7 @@ export default function ExportDirectory({ open, onClose }: { open: boolean; onCl
               placeholder="Enter path"
               value={exportPath}
               onChange={handlePathChange}
+              onSave={handleSubmit}
               autoFocus
               className="w-auto border border-slate-600 bg-slate-800 text-slate-100 rounded mb-2 py-1 gap-1"
             />

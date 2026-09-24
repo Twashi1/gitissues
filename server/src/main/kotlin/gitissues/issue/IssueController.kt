@@ -16,36 +16,41 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/api/issue")
+@RequestMapping("/api/projects/{projectId}/issue")
 class IssueController(
     private val service: IssueService,
 ) {
     @GetMapping
     fun all(
+        @PathVariable projectId: Long,
         @RequestParam(required = false) listId: Long?,
-    ): List<IssueResponse> = if (listId != null) service.getByListId(listId) else service.all()
+    ): List<IssueResponse> = if (listId != null) service.getByListId(projectId, listId!!) else service.all(projectId)
 
     @GetMapping("/{id}")
     fun get(
+        @PathVariable projectId: Long,
         @PathVariable id: Long,
-    ): IssueResponse = service.get(id)
+    ): IssueResponse = service.get(projectId, id)
 
     @PostMapping
     fun create(
+        @PathVariable projectId: Long,
         @RequestBody req: IssueCreateRequest,
-    ): IssueResponse = service.create(req)
+    ): IssueResponse = service.create(projectId, req)
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun delete(
+        @PathVariable projectId: Long,
         @PathVariable id: Long,
     ) {
-        service.delete(id)
+        service.delete(projectId, id)
     }
 
     @PatchMapping("/{id}")
     fun patch(
+        @PathVariable projectId: Long,
         @PathVariable id: Long,
         @RequestBody req: IssuePatchRequest,
-    ): IssueResponse = service.patch(id, req)
+    ): IssueResponse = service.patch(projectId, id, req)
 }

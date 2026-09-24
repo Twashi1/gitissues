@@ -135,19 +135,19 @@ export default function WorleyBackground() {
         function resize() {
           if (!canvas) return
 
-            const dpr = window.devicePixelRatio || 1
+          const dpr = window.devicePixelRatio || 1
 
-            canvas.width = Math.floor(window.innerWidth * dpr)
-            canvas.height = Math.floor(window.innerHeight * dpr)
+          canvas.width = Math.floor(window.innerWidth * dpr)
+          canvas.height = Math.floor(window.innerHeight * dpr)
 
-            canvas.style.width = `${window.innerWidth}px`
-            canvas.style.height = `${window.innerHeight}px`
+          canvas.style.width = `${window.innerWidth}px`
+          canvas.style.height = `${window.innerHeight}px`
 
-            gl.viewport(0, 0, canvas.width, canvas.height)
+          gl.viewport(0, 0, canvas.width, canvas.height)
 
-            if (resolutionLocation !== null) {
-              gl.uniform2f(resolutionLocation, canvas.width, canvas.height)
-            }
+          if (resolutionLocation !== null) {
+            gl.uniform2f(resolutionLocation, canvas.width, canvas.height)
+          }
         }
 
         window.addEventListener('resize', resize)
@@ -188,7 +188,7 @@ export default function WorleyBackground() {
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 z-0 w-full h-full"
+      className="absolute inset-0 w-full h-full"
     />
   )
 }

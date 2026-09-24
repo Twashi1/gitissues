@@ -19,19 +19,24 @@ class IssueService(
 ) {
     private val log = LoggerFactory.getLogger(IssueService::class.java)
 
-    fun all(): List<IssueResponse> = repo.findAllByOrderByIdDesc().map { it.toResponse() }
+    fun all(projectId: Long): List<IssueResponse> = repo.findAllByProjectIdOrderByIdDesc(projectId).map { it.toResponse() }
 
-    fun getByListId(listId: Long): List<IssueResponse> = repo.findByListId(listId).map { it.toResponse() }
+    fun getByListId(projectId: Long, listId: Long): List<IssueResponse> =
+        repo.findByProjectIdAndListId(projectId, listId).map { it.toResponse() }
 
-    fun get(id: Long): IssueResponse =
+    fun get(projectId: Long, id: Long): IssueResponse =
         repo
-            .findById(id)
-            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Issue $id not found") }
+            .findById(IssueId(projectId, id))
+            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Issue $id not found in project $projectId") }
             .toResponse()
 
-    fun create(req: IssueCreateRequest): IssueResponse {
+    fun create(projectId: Long, req: IssueCreateRequest): IssueResponse {
+        val maxId = repo.findMaxIdByProjectId(projectId)
+        val nextId = if (maxId == null) 1L else maxId + 1
         val issue =
             Issue(
+                projectId = projectId,
+                id = nextId,
                 title = req.title,
                 description = req.description,
                 status = req.status,
@@ -43,32 +48,35 @@ class IssueService(
     }
 
     @Transactional
-    fun delete(id: Long) {
-        if (!repo.existsById(id)) {
-            throw NoSuchElementException("Issue $id not found")
+    fun delete(projectId: Long, id: Long) {
+        val issueId = IssueId(projectId, id)
+        if (!repo.existsById(issueId)) {
+            throw NoSuchElementException("Issue $id not found in project $projectId")
         }
 
         // Load the entity for the event (optional, but we can pass it)
         val issueToDelete =
             repo
-                .findById(id)
-                .orElseThrow { NoSuchElementException("Issue $id not found") }
+                .findById(issueId)
+                .orElseThrow { NoSuchElementException("Issue $id not found in project $projectId") }
 
-        repo.deleteById(id)
+        repo.deleteById(issueId)
         eventPublisher.publishEvent(IssueDeletedEvent(id, issueToDelete))
     }
 
     @Transactional
     fun patch(
+        projectId: Long,
         id: Long,
         req: IssuePatchRequest,
     ): IssueResponse {
         log.info("Patch request: {}", req)
 
+        val issueId = IssueId(projectId, id)
         val issue =
             repo
-                .findById(id)
-                .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Issue $id not found") }
+                .findById(issueId)
+                .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Issue $id not found in project $projectId") }
 
         issue.title = req.title ?: issue.title
         issue.description = req.description ?: issue.description

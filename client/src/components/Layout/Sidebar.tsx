@@ -1,16 +1,18 @@
+import { Link } from 'react-router-dom'
+
 export default function Sidebar() {
   return (
-    <aside className="w-60 border-r border-slate-800 p-4 space-y-2">
-      <nav className="space-y-2 text-sm">
-        <a className="block px-3 py-2 rounded hover:bg-slate-800" href="#">
+    <aside className="flex-1 flex flex-col">
+      <nav className="flex-1 flex flex-col justify-start space-y-1">
+        <Link to="/" className="items-center px-4 py-1.5 text-sm font-medium hover:bg-slate-800">
           Dashboard
-        </a>
+        </Link>
 
-        <a className="block px-3 py-2 rounded hover:bg-slate-800" href="#">
+        <a href="#" className="items-center px-4 py-1.5 text-sm font-medium hover:bg-slate-800">
           Issues
         </a>
 
-        <a className="block px-3 py-2 rounded hover:bg-slate-800" href="#">
+        <a href="#" className="items-center px-4 py-1.5 text-sm font-medium hover:bg-slate-800">
           Settings
         </a>
       </nav>

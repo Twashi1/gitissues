@@ -53,45 +53,45 @@ class IssueListControllerTest {
     @Test
     fun `test get all issue lists returns list`() {
         // Arrange
-        whenever(service.all()).thenReturn(listOf(testIssueListResponse))
+        whenever(service.all(1L)).thenReturn(listOf(testIssueListResponse))
 
         // Act & Assert
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("/api/issue-lists")
+                    .get("/api/projects/1/issue-lists")
                     .accept(MediaType.APPLICATION_JSON),
             ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(1))
             .andExpect(MockMvcResultMatchers.jsonPath("$[0].title").value("Test List"))
 
-        verify(service).all()
+        verify(service).all(1L)
     }
 
     @Test
     fun `test get issue list by id returns list`() {
         // Arrange
-        whenever(service.get(1L)).thenReturn(testIssueListResponse)
+        whenever(service.get(1L, 1L)).thenReturn(testIssueListResponse)
 
         // Act & Assert
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("/api/issue-lists/1")
+                    .get("/api/projects/1/issue-lists/1")
                     .accept(MediaType.APPLICATION_JSON),
             ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(1))
             .andExpect(MockMvcResultMatchers.jsonPath("$.title").value("Test List"))
 
-        verify(service).get(1L)
+        verify(service).get(1L, 1L)
     }
 
     @Test
     fun `test get issue list by id not found returns 404`() {
         // Arrange
-        whenever(service.get(999L)).thenThrow(
+        whenever(service.get(1L, 999L)).thenThrow(
             IllegalArgumentException("IssueList 999 not found"),
         )
 
@@ -99,11 +99,11 @@ class IssueListControllerTest {
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("/api/issue-lists/999")
+                    .get("/api/projects/1/issue-lists/999")
                     .accept(MediaType.APPLICATION_JSON),
             ).andExpect(MockMvcResultMatchers.status().isNotFound)
 
-        verify(service).get(999L)
+        verify(service).get(1L, 999L)
     }
 
     @Test
@@ -117,14 +117,14 @@ class IssueListControllerTest {
                 createdAt = testInstant,
             )
 
-        whenever(service.create(any())).thenReturn(createdResponse)
+        whenever(service.create(1L, createRequest)).thenReturn(createdResponse)
         val requestJson = objectMapper.writeValueAsString(createRequest)
 
         // Act & Assert
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/issue-lists")
+                    .post("/api/projects/1/issue-lists")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson)
                     .accept(MediaType.APPLICATION_JSON),
@@ -133,23 +133,23 @@ class IssueListControllerTest {
             .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(1))
             .andExpect(MockMvcResultMatchers.jsonPath("$.title").value("New List"))
 
-        verify(service).create(any())
+        verify(service).create(1L, createRequest)
     }
 
     @Test
     fun `test delete issue list returns 204`() {
         // Arrange
-        doNothing().whenever(service).delete(1L)
+        doNothing().whenever(service).delete(1L, 1L)
 
         // Act & Assert
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .delete("/api/issue-lists/1")
+                    .delete("/api/projects/1/issue-lists/1")
                     .accept(MediaType.APPLICATION_JSON),
             ).andExpect(MockMvcResultMatchers.status().isNoContent)
 
-        verify(service).delete(1L)
+        verify(service).delete(1L, 1L)
     }
 
     @Test
@@ -157,17 +157,17 @@ class IssueListControllerTest {
         // Arrange
         doThrow(IllegalArgumentException("IssueList 999 not found"))
             .whenever(service)
-            .delete(999L)
+            .delete(1L, 999L)
 
         // Act & Assert
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .delete("/api/issue-lists/999")
+                    .delete("/api/projects/1/issue-lists/999")
                     .accept(MediaType.APPLICATION_JSON),
             ).andExpect(MockMvcResultMatchers.status().isNotFound)
 
-        verify(service).delete(999L)
+        verify(service).delete(1L, 999L)
     }
 
     @Test
@@ -181,14 +181,14 @@ class IssueListControllerTest {
                 createdAt = testInstant,
             )
 
-        whenever(service.patch(eq(1L), any())).thenReturn(updatedResponse)
+        whenever(service.patch(eq(1L), eq(1L), any())).thenReturn(updatedResponse)
         val requestJson = objectMapper.writeValueAsString(patchRequest)
 
         // Act & Assert
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .patch("/api/issue-lists/1")
+                    .patch("/api/projects/1/issue-lists/1")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson)
                     .accept(MediaType.APPLICATION_JSON),
@@ -197,14 +197,14 @@ class IssueListControllerTest {
             .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(1))
             .andExpect(MockMvcResultMatchers.jsonPath("$.title").value("Updated List"))
 
-        verify(service).patch(eq(1L), any())
+        verify(service).patch(eq(1L), eq(1L), any())
     }
 
     @Test
     fun `test patch issue list not found returns 404`() {
         // Arrange
         val patchRequest = IssueListPatchRequest(title = "Updated List")
-        whenever(service.patch(eq(999L), any())).thenThrow(
+        whenever(service.patch(eq(1L), eq(999L), any())).thenThrow(
             IllegalArgumentException("IssueList 999 not found"),
         )
         val requestJson = objectMapper.writeValueAsString(patchRequest)
@@ -213,12 +213,12 @@ class IssueListControllerTest {
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .patch("/api/issue-lists/999")
+                    .patch("/api/projects/1/issue-lists/999")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson)
                     .accept(MediaType.APPLICATION_JSON),
             ).andExpect(MockMvcResultMatchers.status().isNotFound)
 
-        verify(service).patch(eq(999L), any())
+        verify(service).patch(eq(1L), eq(999L), any())
     }
 }

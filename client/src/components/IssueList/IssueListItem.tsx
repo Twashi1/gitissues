@@ -7,9 +7,11 @@ import clsx from 'clsx'
 type Props = {
   issue: Issue
   onDelete: (id: number) => void
+  projectId?: number
+  onUpdateIssue: (issueId: number, title: string | null, description: string | null) => void
 }
 
-export default function IssueListItem({ issue, onDelete }: Props) {
+export default function IssueListItem({ issue, onDelete, projectId, onUpdateIssue }: Props) {
   const [open, setOpen] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
 
@@ -49,7 +51,7 @@ export default function IssueListItem({ issue, onDelete }: Props) {
         )}
       >
         <div className="pt-2">
-          <IssueDetail onClick={() => setOpen(false)} issue={issue} />
+          <IssueDetail onClick={() => setOpen(false)} issue={issue} projectId={projectId} onUpdateIssue={onUpdateIssue} />
         </div>
       </div>
     </div>
