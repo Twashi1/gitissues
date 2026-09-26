@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, dialog, ipcMain } = require("electron");
 const { spawn } = require("child_process");
 const path = require("path");
 const fs = require("fs");
@@ -7,6 +7,18 @@ const net = require("net");
 let backendProcess = null;
 let mainWindow = null;
 let backendPort = null;
+
+ipcMain.handle('select-directory', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openDirectory'],
+  });
+
+  if (result.canceled) {
+    return null;
+  }
+
+  return result.filePaths[0];
+});
 
 function getBackendJar() {
     if (app.isPackaged) {
