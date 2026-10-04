@@ -1,5 +1,6 @@
 package gitissues.native
 
+import gitissues.jni.GitIssues
 import java.lang.AutoCloseable
 
 /**
@@ -18,39 +19,45 @@ class Schema internal constructor(
 
     /**
      * Creates a new issue using this schema.
-     * Returns an Issue object that manages the issue's lifetime.
+     * Returns a NativeIssue object that manages the issue's lifetime.
      *
-     * @return Issue object representing the newly created issue
+     * @return NativeIssue representing the newly created issue
      */
-    fun createIssue(): Issue {
-        val issueHandle = gitissues.jni.GitIssues.createIssue(handle)
-        return Issue(issueHandle, this) // Pass reference to schema to keep it alive
+    fun createIssue(): NativeIssue {
+        val issueHandle = GitIssues.createIssue(handle)
+        return NativeIssue(issueHandle, this) // Pass reference to schema to keep it alive
+    }
+
+    fun isNullIssue(issue: NativeIssue): Boolean = GitIssues.isNullIssue(handle, issue.handle)
+
+    fun removeIssues(issues: List<NativeIssue>) {
+        GitIssues.removeIssues(handle, issues.map { it.handle })
     }
 
     /**
      * Loads an IFF file full of issues, given this schema.
-     * Returns a list of Issue objects.
+     * Returns a list of NativeIssue objects.
      *
      * @param filename Path to the IFF file
-     * @return List of Issue objects
+     * @return List of NativeIssue objects
      */
-    fun loadIFF(filename: String): List<Issue> {
-        val issueHandles = gitissues.jni.GitIssues.loadIFF(handle, filename)
-        return issueHandles.map { Issue(it, this) }
+    fun loadIFF(filename: String): List<NativeIssue> {
+        val issueHandles = GitIssues.loadIFF(handle, filename)
+        return issueHandles.map { NativeIssue(it, this) }
     }
 
     /**
-     * Saves a list of issues to an IFF file, given this schema.
+     * Saves a list of NativeIssue objects to an IFF file, given this schema.
      *
      * @param filename Path to the IFF file
-     * @param issues List of Issue objects to save
+     * @param issues List of NativeIssue objects to save
      */
     fun saveIFF(
         filename: String,
-        issues: List<Issue>,
+        issues: List<NativeIssue>,
     ) {
         val issueHandles = issues.map { it.handle }
-        gitissues.jni.GitIssues.saveIFF(handle, filename, issueHandles)
+        GitIssues.saveIFF(handle, filename, issueHandles)
     }
 
     /**
@@ -59,6 +66,25 @@ class Schema internal constructor(
      * but can also be called explicitly to free resources early.
      */
     override fun close() {
-        gitissues.jni.GitIssues.freeSchema(handle)
+        GitIssues.freeSchema(handle)
     }
+
+    /**
+     * Get or create a UUID7 for an issue within this schema.
+     * If the issue already has a UUID7 component registered, it returns the existing one.
+     * Otherwise, it generates a new UUID7 and registers it with the issue.
+     *
+     * @param issue The issue to get or create a UUID7 for
+     * @return A 16-byte array representing the UUID7
+     */
+    fun getOrCreateUUID(issue: NativeIssue): ByteArray {
+        val bytes = GitIssues.getOrCreateUUID(handle, issue.handle)
+        // bytes is already a ByteArray from JNI, return a copy
+        return bytes
+    }
+
+    /**
+     * Companion object with utility methods for the Schema.
+     */
+    companion object
 }

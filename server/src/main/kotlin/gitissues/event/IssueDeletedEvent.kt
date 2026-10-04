@@ -7,11 +7,11 @@ import org.springframework.context.ApplicationEvent
  * Fired after an Issue is removed from SQLite.
  */
 class IssueDeletedEvent(
-    private val issueId: Long, // we only need the identifier
+    private val uuid7: String, // the issue's UUID7 identifier
     private val issue: Issue?, // optional: keep a copy for logging / audit
-) : ApplicationEvent(issueId) {
-    val getIssueId: Long
-        get() = issueId
+) : ApplicationEvent(uuid7) {
+    val getUuid7: String
+        get() = uuid7
 
     val getIssue: Issue?
         get() = issue

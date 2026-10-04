@@ -4,19 +4,14 @@ import gitissues.dto.issue.IssueResponse
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
-import jakarta.persistence.IdClass
 import jakarta.persistence.Table
 
 @Entity
 @Table(name = "issues")
-@IdClass(IssueId::class)
 class Issue(
     @Id
-    @Column(name = "project_id", nullable = false)
-    var projectId: Long = 0L,
-    @Id
-    @Column(name = "id", nullable = false)
-    var id: Long = 0L,
+    @Column(name = "uuid7", nullable = false, length = 36)
+    var uuid7: String,
     @Column(nullable = false, length = 128)
     var title: String,
     @Column(nullable = false, length = 5000)
@@ -25,10 +20,14 @@ class Issue(
     var status: String,
     @Column(name = "list_id")
     var listId: Long? = null,
+    @Column(name = "project_id")
+    var projectId: Long = 0L,
+    @Column(name = "entity")
+    var entity: Int? = null,
 ) {
     fun toResponse(): IssueResponse =
         IssueResponse(
-            id = id,
+            uuid7 = uuid7,
             title = title,
             description = description,
             status = status,

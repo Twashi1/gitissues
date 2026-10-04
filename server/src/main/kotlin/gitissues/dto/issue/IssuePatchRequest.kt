@@ -5,4 +5,5 @@ data class IssuePatchRequest(
     val description: String? = null,
     val status: String? = null,
     val listId: Long? = null,
+    val uuid7: String,
 )

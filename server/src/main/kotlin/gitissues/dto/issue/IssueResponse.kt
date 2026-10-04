@@ -1,7 +1,7 @@
 package gitissues.dto.issue
 
 data class IssueResponse(
-    val id: Long,
+    val uuid7: String,
     val title: String,
     val description: String,
     val status: String,

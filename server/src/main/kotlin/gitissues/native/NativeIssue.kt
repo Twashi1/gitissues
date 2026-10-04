@@ -4,7 +4,7 @@ package gitissues.native
  * Wrapper around a native issue handle that manages the issue's lifetime.
  * Issues are tied to a schema and should not outlive their schema.
  */
-class Issue internal constructor(
+class NativeIssue internal constructor(
     private val _handle: Long,
     private val schema: Schema,
 ) {

@@ -31,16 +31,23 @@ class IssueControllerTest {
     @Mock
     private lateinit var service: IssueService
 
+    @Mock
+    private lateinit var importService: IssueImportService
+
+    @Mock
+    private lateinit var exportService: IssueExportService
+
     private lateinit var mockMvc: MockMvc
     private lateinit var objectMapper: ObjectMapper
 
+    private val testUuid7 = "a1b2c3d4-e5f6-0708-090a-0b0c0d0e0f11"
     private val testIssueResponse =
         IssueResponse(
-            id = 1L,
+            uuid7 = testUuid7,
             title = "Test Issue",
             description = "Test Description",
             status = "open",
-            listId = 1L,
+            listId = 1,
         )
 
     @BeforeEach
@@ -48,7 +55,7 @@ class IssueControllerTest {
         objectMapper = ObjectMapper()
         mockMvc =
             MockMvcBuilders
-                .standaloneSetup(IssueController(service))
+                .standaloneSetup(IssueController(service, importService, exportService))
                 .setControllerAdvice(GlobalExceptionHandler())
                 .build()
     }
@@ -62,11 +69,11 @@ class IssueControllerTest {
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("/api/projects/1/issue")
+                    .get("/api/issues")
                     .accept(MediaType.APPLICATION_JSON),
             ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(1))
+            .andExpect(MockMvcResultMatchers.jsonPath("$[0].uuid7").value(testUuid7))
             .andExpect(MockMvcResultMatchers.jsonPath("$[0].title").value("Test Issue"))
             .andExpect(MockMvcResultMatchers.jsonPath("$[0].description").value("Test Description"))
             .andExpect(MockMvcResultMatchers.jsonPath("$[0].status").value("open"))
@@ -76,57 +83,57 @@ class IssueControllerTest {
     }
 
     @Test
-    fun `test get all issues with listId filter`() {
+    fun `test get all issues with uuid7 filter`() {
         // Arrange
-        whenever(service.getByListId(1L, 1L)).thenReturn(listOf(testIssueResponse))
+        whenever(service.getByUuid7(1L, testUuid7)).thenReturn(listOf(testIssueResponse))
 
         // Act & Assert
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("/api/projects/1/issue")
-                    .param("listId", "1")
+                    .get("/api/issues")
+                    .param("uuid7", testUuid7)
                     .accept(MediaType.APPLICATION_JSON),
             ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(1))
+            .andExpect(MockMvcResultMatchers.jsonPath("$[0].uuid7").value(testUuid7))
             .andExpect(MockMvcResultMatchers.jsonPath("$[0].title").value("Test Issue"))
             .andExpect(MockMvcResultMatchers.jsonPath("$[0].description").value("Test Description"))
             .andExpect(MockMvcResultMatchers.jsonPath("$[0].status").value("open"))
             .andExpect(MockMvcResultMatchers.jsonPath("$[0].listId").value(1))
 
-        verify(service).getByListId(1L, 1L)
+        verify(service).getByUuid7(1L, testUuid7)
     }
 
     @Test
-    fun `test get issue by id returns issue`() {
+    fun `test get issue by uuid7 returns issue`() {
         // Arrange
-        whenever(service.get(1L, 1L)).thenReturn(testIssueResponse)
+        whenever(service.get(testUuid7)).thenReturn(testIssueResponse)
 
         // Act & Assert
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("/api/projects/1/issue/1")
+                    .get("/api/issues/$testUuid7")
                     .accept(MediaType.APPLICATION_JSON),
             ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(1))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.uuid7").value(testUuid7))
             .andExpect(MockMvcResultMatchers.jsonPath("$.title").value("Test Issue"))
             .andExpect(MockMvcResultMatchers.jsonPath("$.description").value("Test Description"))
             .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("open"))
             .andExpect(MockMvcResultMatchers.jsonPath("$.listId").value(1))
 
-        verify(service).get(1L, 1L)
+        verify(service).get(testUuid7)
     }
 
     @Test
-    fun `test get issue by id not found returns 404`() {
+    fun `test get issue by uuid7 not found returns 404`() {
         // Arrange
-        whenever(service.get(1L, 999L)).thenThrow(
+        whenever(service.get("non-existent")).thenThrow(
             ResponseStatusException(
                 HttpStatus.NOT_FOUND,
-                "Issue 999 not found",
+                "Issue non-existent not found",
             ),
         )
 
@@ -134,11 +141,11 @@ class IssueControllerTest {
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("/api/projects/1/issue/999")
+                    .get("/api/issues/non-existent")
                     .accept(MediaType.APPLICATION_JSON),
             ).andExpect(MockMvcResultMatchers.status().isNotFound)
 
-        verify(service).get(1L, 999L)
+        verify(service).get("non-existent")
     }
 
     @Test
@@ -149,15 +156,16 @@ class IssueControllerTest {
                 title = "New Issue",
                 description = "New Description",
                 status = "open",
-                listId = 1L,
+                listId = 1,
+                uuid7 = testUuid7,
             )
         val createdResponse =
             IssueResponse(
-                id = 1L,
+                uuid7 = testUuid7,
                 title = "New Issue",
                 description = "New Description",
                 status = "open",
-                listId = 1L,
+                listId = 1,
             )
 
         whenever(service.create(1L, createRequest)).thenReturn(createdResponse)
@@ -167,13 +175,13 @@ class IssueControllerTest {
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/projects/1/issue")
+                    .post("/api/issues")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson)
                     .accept(MediaType.APPLICATION_JSON),
             ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(1))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.uuid7").value(testUuid7))
             .andExpect(MockMvcResultMatchers.jsonPath("$.title").value("New Issue"))
             .andExpect(MockMvcResultMatchers.jsonPath("$.description").value("New Description"))
             .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("open"))
@@ -185,35 +193,35 @@ class IssueControllerTest {
     @Test
     fun `test delete issue returns 204`() {
         // Arrange
-        doNothing().whenever(service).delete(1L, 1L)
+        doNothing().whenever(service).delete(testUuid7)
 
         // Act & Assert
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .delete("/api/projects/1/issue/1")
+                    .delete("/api/issues/$testUuid7")
                     .accept(MediaType.APPLICATION_JSON),
             ).andExpect(MockMvcResultMatchers.status().isNoContent)
 
-        verify(service).delete(1L, 1L)
+        verify(service).delete(testUuid7)
     }
 
     @Test
     fun `test delete issue not found returns 404`() {
         // Arrange
-        doThrow(NoSuchElementException("Issue 999 not found"))
+        doThrow(NoSuchElementException("Issue not found"))
             .whenever(service)
-            .delete(1L, 999L)
+            .delete("non-existent")
 
         // Act & Assert
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .delete("/api/projects/1/issue/999")
+                    .delete("/api/issues/non-existent")
                     .accept(MediaType.APPLICATION_JSON),
             ).andExpect(MockMvcResultMatchers.status().isNotFound)
 
-        verify(service).delete(1L, 999L)
+        verify(service).delete("non-existent")
     }
 
     @Test
@@ -224,37 +232,38 @@ class IssueControllerTest {
                 title = "Updated Title",
                 description = "Updated Description",
                 status = "in progress",
-                listId = 2L,
+                listId = 2,
+                uuid7 = testUuid7,
             )
         val updatedResponse =
             IssueResponse(
-                id = 1L,
+                uuid7 = testUuid7,
                 title = "Updated Title",
                 description = "Updated Description",
                 status = "in progress",
-                listId = 2L,
+                listId = 2,
             )
 
-        whenever(service.patch(eq(1L), eq(1L), any())).thenReturn(updatedResponse)
+        whenever(service.patch(patchRequest)).thenReturn(updatedResponse)
         val requestJson = objectMapper.writeValueAsString(patchRequest)
 
         // Act & Assert
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .patch("/api/projects/1/issue/1")
+                    .patch("/api/issues/$testUuid7")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson)
                     .accept(MediaType.APPLICATION_JSON),
             ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(1))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.uuid7").value(testUuid7))
             .andExpect(MockMvcResultMatchers.jsonPath("$.title").value("Updated Title"))
             .andExpect(MockMvcResultMatchers.jsonPath("$.description").value("Updated Description"))
             .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("in progress"))
             .andExpect(MockMvcResultMatchers.jsonPath("$.listId").value(2))
 
-        verify(service).patch(eq(1L), eq(1L), any())
+        verify(service).patch(patchRequest)
     }
 
     @Test
@@ -266,11 +275,13 @@ class IssueControllerTest {
                 description = null,
                 status = null,
                 listId = null,
+                uuid7 = testUuid7,
             )
-        whenever(service.patch(eq(1L), eq(999L), any())).thenThrow(
+
+        whenever(service.patch(patchRequest)).thenThrow(
             ResponseStatusException(
                 HttpStatus.NOT_FOUND,
-                "Issue 999 not found",
+                "Issue testUuid7 not found",
             ),
         )
         val requestJson = objectMapper.writeValueAsString(patchRequest)
@@ -279,12 +290,12 @@ class IssueControllerTest {
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .patch("/api/projects/1/issue/999")
+                    .patch("/api/issues/$testUuid7")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson)
                     .accept(MediaType.APPLICATION_JSON),
             ).andExpect(MockMvcResultMatchers.status().isNotFound)
 
-        verify(service).patch(eq(1L), eq(999L), any())
+        verify(service).patch(patchRequest)
     }
 }

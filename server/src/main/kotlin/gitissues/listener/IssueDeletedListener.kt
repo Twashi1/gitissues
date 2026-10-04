@@ -15,8 +15,8 @@ class IssueDeletedListener(
     @Async
     @TransactionalEventListener // AFTER_COMMIT by default
     fun handleIssueDeleted(event: IssueDeletedEvent) {
-        // You can decide whether to forward the whole entity (if you kept it) or just the id.
-        nativeStore.forwardDeleted(event.getIssueId, event.getIssue)
+        // You can decide whether to forward the whole entity (if you kept it) or just the uuid7.
+        nativeStore.forwardDeleted(event.getUuid7, event.getIssue)
         // Mark that a change occurred so periodic sync can pick it up
         syncService.markChanges()
     }

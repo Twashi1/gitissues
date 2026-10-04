@@ -1,9 +1,13 @@
 package gitissues.native
 
+import gitissues.jni.GitIssues
+import org.springframework.stereotype.Component
+
 /**
  * Kotlin wrapper around the JNI GitIssues bindings.
  * Provides a more idiomatic Kotlin API with automatic resource management.
  */
+@Component
 object GitIssues {
     /**
      * Initialize the native library.

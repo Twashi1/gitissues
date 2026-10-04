@@ -18,28 +18,28 @@ class NativeIssueStore {
     fun forwardSaved(issue: Issue) {
         // TODO: Implement your native call, e.g.
         // NativeLibrary.issueSave(
-        //     issue.id,
+        //     issue.uuid7,
         //     issue.title,
         //     issue.description,
         //     issue.status,
         //     issue.listId ?: -1L   // or whatever sentinel your native side expects
         // )
         // For now just a placeholder:
-        System.out.println("[NativeStore] Saved issue ${issue.id}: ${issue.title}")
+        System.out.println("[NativeStore] Saved issue ${issue.uuid7}: ${issue.title}")
     }
 
     /**
      * Called after an Issue is DELETED from SQLite.
      *
-     * @param issueId the primary key of the removed row
+     * @param uuid7 the issue's UUID7 identifier
      * @param issue   the original Issue entity (may be null if you didn't pass it in the event)
      */
     fun forwardDeleted(
-        issueId: Long,
+        uuid7: String,
         issue: Issue?,
     ) {
         // TODO: Implement your native call, e.g.
-        // NativeLibrary.issueDelete(issueId)
-        System.out.println("[NativeStore] Deleted issue $issueId")
+        // NativeLibrary.issueDelete(uuid7)
+        System.out.println("[NativeStore] Deleted issue $uuid7")
     }
 }

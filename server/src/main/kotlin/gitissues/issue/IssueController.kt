@@ -16,41 +16,50 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/api/projects/{projectId}/issue")
+@RequestMapping("/api/issues")
 class IssueController(
     private val service: IssueService,
+    private val importService: IssueImportService,
+    private val exportService: IssueExportService,
 ) {
     @GetMapping
     fun all(
-        @PathVariable projectId: Long,
-        @RequestParam(required = false) listId: Long?,
-    ): List<IssueResponse> = if (listId != null) service.getByListId(projectId, listId!!) else service.all(projectId)
+        @RequestParam(required = false) uuid7: String?,
+    ): List<IssueResponse> = if (uuid7 != null) service.getByUuid7(1L, uuid7) else service.all(1L)
 
-    @GetMapping("/{id}")
+    @GetMapping("/{uuid7}")
     fun get(
-        @PathVariable projectId: Long,
-        @PathVariable id: Long,
-    ): IssueResponse = service.get(projectId, id)
+        @PathVariable uuid7: String,
+    ): IssueResponse = service.get(uuid7)
 
     @PostMapping
     fun create(
-        @PathVariable projectId: Long,
         @RequestBody req: IssueCreateRequest,
-    ): IssueResponse = service.create(projectId, req)
+    ): IssueResponse = service.create(1L, req)
 
-    @DeleteMapping("/{id}")
+    @PostMapping("/loadIFF")
+    fun loadIFF(
+        @RequestParam projectId: Long,
+        @RequestParam path: String,
+    ): List<IssueResponse> = importService.loadIFF(projectId, path)
+
+    @PostMapping("/exportIFF")
+    fun exportIFF(
+        @RequestParam projectId: Long,
+        @RequestParam path: String,
+    ): Boolean = exportService.exportIFF(projectId, path)
+
+    @DeleteMapping("/{uuid7}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun delete(
-        @PathVariable projectId: Long,
-        @PathVariable id: Long,
+        @PathVariable uuid7: String,
     ) {
-        service.delete(projectId, id)
+        service.delete(uuid7)
     }
 
-    @PatchMapping("/{id}")
+    @PatchMapping("/{uuid7}")
     fun patch(
-        @PathVariable projectId: Long,
-        @PathVariable id: Long,
+        @PathVariable uuid7: String,
         @RequestBody req: IssuePatchRequest,
-    ): IssueResponse = service.patch(projectId, id, req)
+    ): IssueResponse = service.patch(req)
 }

@@ -19,28 +19,29 @@ class IssueService(
 ) {
     private val log = LoggerFactory.getLogger(IssueService::class.java)
 
-    fun all(projectId: Long): List<IssueResponse> = repo.findAllByProjectIdOrderByIdDesc(projectId).map { it.toResponse() }
+    fun all(projectId: Long): List<IssueResponse> = repo.findAllByUuid7OrderByUuid7Desc(projectId).map { it.toResponse() }
 
-    fun getByListId(projectId: Long, listId: Long): List<IssueResponse> =
-        repo.findByProjectIdAndListId(projectId, listId).map { it.toResponse() }
+    fun getByUuid7(projectId: Long, uuid7: String): List<IssueResponse> =
+        repo.findByProjectIdAndUuid7(projectId, uuid7).map { it.toResponse() }
 
-    fun get(projectId: Long, id: Long): IssueResponse =
-        repo
-            .findById(IssueId(projectId, id))
-            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Issue $id not found in project $projectId") }
-            .toResponse()
+    fun get(uuid7: String): IssueResponse {
+        val issue = repo.findByUuid7(uuid7)
+        if (issue == null || issue.uuid7 != uuid7) {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Issue $uuid7 not found")
+        }
+        return issue.toResponse()
+    }
 
     fun create(projectId: Long, req: IssueCreateRequest): IssueResponse {
-        val maxId = repo.findMaxIdByProjectId(projectId)
-        val nextId = if (maxId == null) 1L else maxId + 1
+        val uuid7 = req.uuid7
         val issue =
             Issue(
-                projectId = projectId,
-                id = nextId,
+                uuid7 = uuid7,
                 title = req.title,
                 description = req.description,
                 status = req.status,
                 listId = if (req.listId != null && req.listId > 0) req.listId else null,
+                projectId = projectId,
             )
         val saved = repo.save(issue)
         eventPublisher.publishEvent(IssueSavedEvent(saved))
@@ -48,35 +49,24 @@ class IssueService(
     }
 
     @Transactional
-    fun delete(projectId: Long, id: Long) {
-        val issueId = IssueId(projectId, id)
-        if (!repo.existsById(issueId)) {
-            throw NoSuchElementException("Issue $id not found in project $projectId")
+    fun delete(uuid7: String) {
+        val issue = repo.findByUuid7(uuid7)
+        if (issue == null || issue.uuid7 != uuid7) {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Issue $uuid7 not found")
         }
 
-        // Load the entity for the event (optional, but we can pass it)
-        val issueToDelete =
-            repo
-                .findById(issueId)
-                .orElseThrow { NoSuchElementException("Issue $id not found in project $projectId") }
-
-        repo.deleteById(issueId)
-        eventPublisher.publishEvent(IssueDeletedEvent(id, issueToDelete))
+        repo.delete(issue)
+        eventPublisher.publishEvent(IssueDeletedEvent(uuid7, issue))
     }
 
     @Transactional
-    fun patch(
-        projectId: Long,
-        id: Long,
-        req: IssuePatchRequest,
-    ): IssueResponse {
+    fun patch(req: IssuePatchRequest): IssueResponse {
         log.info("Patch request: {}", req)
 
-        val issueId = IssueId(projectId, id)
-        val issue =
-            repo
-                .findById(issueId)
-                .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Issue $id not found in project $projectId") }
+        val issue = repo.findByUuid7(req.uuid7)
+        if (issue == null || issue.uuid7 != req.uuid7) {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Issue ${req.uuid7} not found")
+        }
 
         issue.title = req.title ?: issue.title
         issue.description = req.description ?: issue.description

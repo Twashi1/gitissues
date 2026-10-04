@@ -1,10 +1,12 @@
-Server interacts with library to create IFF files :: @server $2 #todo created:2026-08-25 priority:medium;
-Re-arrange issues within a list :: @ui $6 #todo created:2026-08-31 priority:high;
-Document installation :: @docs $8 #todo created:2026-09-13 priority:low;
-Doxygen/endpoint documentation :: @docs $9 #todo created:2026-09-13 priority:low;
-Dashboard showing latest issues/sync'd changes :: @ui $10 #todo created:2026-09-14 priority:medium;
+Server interacts with library to create IFF files :: @server #todo created:2026-08-25 priority:medium;
+Re-arrange issues within a list :: @ui #todo created:2026-08-31 priority:high;
+Document installation :: @docs #todo created:2026-09-13 priority:low;
+Doxygen/endpoint documentation :: @docs #todo created:2026-09-13 priority:low;
+Dashboard showing latest issues/sync'd changes :: @ui #todo created:2026-09-14 priority:medium;
 Use the same cross cancel/delete button for issues and other cancels :: @ui #todo;
 Modify export directory should show the current path :: @ui #todo;
-Export directory browse forces pointing at a file, we wan to point at a directory :: @client #todo;
 Validate the folder exists when user types in the path :: @client #todo;
 Lots of buttons that don't use our variants, some of our variants also remain unused :: @ui #todo;
+Modifying the status of an issue interface :: @ui #todo;
+Export directory points to a directory, but issues should all be stored in the same directory (not per-project), with the name of the project being the name of the file :: @ui #todo;
+In import/export native issue services, cache the tag ids :: @server #todo;

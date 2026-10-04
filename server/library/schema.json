@@ -5,31 +5,19 @@
     "date_format": "D-M"
 	},
 	"tags": {
-    "id": {
-      "type": "int64",
-      "required": true
-    },
-		"list": {
-			"type": "int64",
-			"required": false
+		"listid": {
+			"type": "int64"
 		},
+    "projectid": {
+      "type": "int64"
+    },    
     "status": {
       "alias": "#",
       "type": "string",
       "required": false
     },
-    "nature": {
-      "alias": "?",
-      "type": "string",
-      "required": false
-    },
-    "created": {
-      "type": "date",
-      "required": false
-    },
-    "priority": {
-      "type": "string",
-      "required": false
+    "title": {
+      "type": "string"
     }
 	}
 }
