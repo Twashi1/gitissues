@@ -19,4 +19,12 @@ interface IssueRepository : JpaRepository<Issue, String> {
     @Modifying
     @Query("update Issue i set i.listId = null where i.listId = ?1")
     fun updateListIdToNullByListId(listId: Long): Int
+
+    @Query("SELECT MAX(i.displayOrder) FROM Issue i WHERE i.projectId = ?1 AND (i.listId = ?2 OR (?2 IS NULL AND i.listId IS NULL))")
+    fun findMaxDisplayOrderByListId(projectId: Long, listId: Long?): Int?
+
+    @Query("SELECT i FROM Issue i WHERE i.projectId = ?1 AND (i.listId = ?2 OR (?2 IS NULL AND i.listId IS NULL)) ORDER BY i.displayOrder ASC")
+    fun findAllByProjectIdAndListIdOrderByDisplayOrderAsc(projectId: Long, listId: Long?): List<Issue>
+
+    fun findByProjectIdAndListIdAndUuid7(projectId: Long, listId: Long?, uuid7: String): List<Issue>
 }

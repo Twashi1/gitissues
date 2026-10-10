@@ -1,7 +1,7 @@
 import type { Issue, IssueCreateRequest, IssuePatchVariables } from '../types/issue'
 
-export async function createIssue(data: IssueCreateRequest): Promise<Issue> {
-  const response = await fetch('/api/issue', {
+export async function createIssue(projectId: number, data: IssueCreateRequest, listId: number): Promise<Issue> {
+  const response = await fetch(`/api/projects/${projectId}/issue-lists/${listId}/issues`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -16,9 +16,8 @@ export async function createIssue(data: IssueCreateRequest): Promise<Issue> {
   return response.json() as Promise<Issue>
 }
 
-export async function getIssues(listId?: number): Promise<Issue[]> {
-  const url = listId ? `/api/issue?listId=${listId}` : '/api/issue'
-  const response = await fetch(url)
+export async function getIssues(listId: number, projectId: number): Promise<Issue[]> {
+  const response = await fetch(`/api/projects/${projectId}/issue-lists/${listId}/issues`)
 
   if (!response.ok) {
     throw new Error('Failed to fetch issues')
@@ -27,8 +26,8 @@ export async function getIssues(listId?: number): Promise<Issue[]> {
   return response.json() as Promise<Issue[]>
 }
 
-export async function createIssueByProject(projectId: number, data: IssueCreateRequest): Promise<Issue> {
-  const response = await fetch(`/api/projects/${projectId}/issue`, {
+export async function createIssueByProject(projectId: number, data: IssueCreateRequest, listId: number): Promise<Issue> {
+  const response = await fetch(`/api/projects/${projectId}/issue-lists/${listId}/issues`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -43,11 +42,8 @@ export async function createIssueByProject(projectId: number, data: IssueCreateR
   return response.json() as Promise<Issue>
 }
 
-export async function getIssuesByProject(projectId: number, listId?: number): Promise<Issue[]> {
-  const url = listId
-    ? `/api/projects/${projectId}/issue?listId=${listId}`
-    : `/api/projects/${projectId}/issue`
-  const response = await fetch(url)
+export async function getIssuesByProject(projectId: number, listId: number): Promise<Issue[]> {
+  const response = await fetch(`/api/projects/${projectId}/issue-lists/${listId}/issues`)
 
   if (!response.ok) {
     throw new Error('Failed to fetch issues for project')
@@ -56,8 +52,8 @@ export async function getIssuesByProject(projectId: number, listId?: number): Pr
   return response.json() as Promise<Issue[]>
 }
 
-export async function deleteIssue(id: number): Promise<void> {
-  const response = await fetch(`/api/issue/${id}`, {
+export async function deleteIssue(projectId: number, listId: number, id: number): Promise<void> {
+  const response = await fetch(`/api/projects/${projectId}/issue-lists/${listId}/issues/${id}`, {
     method: 'DELETE',
   })
 
@@ -66,8 +62,8 @@ export async function deleteIssue(id: number): Promise<void> {
   }
 }
 
-export async function deleteIssueByProject(projectId: number, id: number): Promise<void> {
-  const response = await fetch(`/api/projects/${projectId}/issue/${id}`, {
+export async function deleteIssueByProject(projectId: number, listId: number, id: number): Promise<void> {
+  const response = await fetch(`/api/projects/${projectId}/issue-lists/${listId}/issues/${id}`, {
     method: 'DELETE',
   })
 
@@ -76,13 +72,13 @@ export async function deleteIssueByProject(projectId: number, id: number): Promi
   }
 }
 
-export async function patchIssue(data: IssuePatchVariables): Promise<Issue> {
-  const response = await fetch(`/api/issue/${data.id}`, {
+export async function patchIssue(projectId: number, data: IssuePatchVariables, listId: number, id: number): Promise<Issue> {
+  const response = await fetch(`/api/projects/${projectId}/issue-lists/${listId}/issues/${id}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(data.request),
+    body: JSON.stringify(data),
   })
 
   if (!response.ok) {
@@ -92,8 +88,8 @@ export async function patchIssue(data: IssuePatchVariables): Promise<Issue> {
   return response.json() as Promise<Issue>
 }
 
-export async function patchIssueByProject(projectId: number, data: IssuePatchVariables): Promise<Issue> {
-  const response = await fetch(`/api/projects/${projectId}/issue/${data.id}`, {
+export async function patchIssueByProject(projectId: number, data: IssuePatchVariables, listId: number, id: number): Promise<Issue> {
+  const response = await fetch(`/api/projects/${projectId}/issue-lists/${listId}/issues/${id}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -108,8 +104,8 @@ export async function patchIssueByProject(projectId: number, data: IssuePatchVar
   return response.json() as Promise<Issue>
 }
 
-export async function moveIssue(issueId: number, listId: number): Promise<void> {
-  const response = await fetch(`/api/issue/${issueId}`, {
+export async function moveIssue(projectId: number, issueId: number, listId: number): Promise<void> {
+  const response = await fetch(`/api/projects/${projectId}/issue-lists/${listId}/issues/${issueId}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -123,7 +119,7 @@ export async function moveIssue(issueId: number, listId: number): Promise<void> 
 }
 
 export async function moveIssueByProject(projectId: number, issueId: number, listId: number): Promise<void> {
-  const response = await fetch(`/api/projects/${projectId}/issue/${issueId}`, {
+  const response = await fetch(`/api/projects/${projectId}/issue-lists/${listId}/issues/${issueId}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',

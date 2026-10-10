@@ -63,13 +63,13 @@ class IssueControllerTest {
     @Test
     fun `test get all issues returns list`() {
         // Arrange
-        whenever(service.all(1L)).thenReturn(listOf(testIssueResponse))
+        whenever(service.all(1L, null)).thenReturn(listOf(testIssueResponse))
 
         // Act & Assert
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("/api/issues")
+                    .get("/api/projects/1/issues")
                     .accept(MediaType.APPLICATION_JSON),
             ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
@@ -79,7 +79,7 @@ class IssueControllerTest {
             .andExpect(MockMvcResultMatchers.jsonPath("$[0].status").value("open"))
             .andExpect(MockMvcResultMatchers.jsonPath("$[0].listId").value(1))
 
-        verify(service).all(1L)
+        verify(service).all(1L, null)
     }
 
     @Test
@@ -91,7 +91,7 @@ class IssueControllerTest {
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("/api/issues")
+                    .get("/api/projects/1/issues")
                     .param("uuid7", testUuid7)
                     .accept(MediaType.APPLICATION_JSON),
             ).andExpect(MockMvcResultMatchers.status().isOk)
@@ -108,13 +108,13 @@ class IssueControllerTest {
     @Test
     fun `test get issue by uuid7 returns issue`() {
         // Arrange
-        whenever(service.get(testUuid7)).thenReturn(testIssueResponse)
+        whenever(service.get(1L, testUuid7)).thenReturn(testIssueResponse)
 
         // Act & Assert
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("/api/issues/$testUuid7")
+                    .get("/api/projects/1/issues/$testUuid7")
                     .accept(MediaType.APPLICATION_JSON),
             ).andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
@@ -124,13 +124,13 @@ class IssueControllerTest {
             .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("open"))
             .andExpect(MockMvcResultMatchers.jsonPath("$.listId").value(1))
 
-        verify(service).get(testUuid7)
+        verify(service).get(1L, testUuid7)
     }
 
     @Test
     fun `test get issue by uuid7 not found returns 404`() {
         // Arrange
-        whenever(service.get("non-existent")).thenThrow(
+        whenever(service.get(1L, "non-existent")).thenThrow(
             ResponseStatusException(
                 HttpStatus.NOT_FOUND,
                 "Issue non-existent not found",
@@ -141,11 +141,11 @@ class IssueControllerTest {
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .get("/api/issues/non-existent")
+                    .get("/api/projects/1/issues/non-existent")
                     .accept(MediaType.APPLICATION_JSON),
             ).andExpect(MockMvcResultMatchers.status().isNotFound)
 
-        verify(service).get("non-existent")
+        verify(service).get(1L, "non-existent")
     }
 
     @Test
@@ -175,7 +175,7 @@ class IssueControllerTest {
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .post("/api/issues")
+                    .post("/api/projects/1/issues")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson)
                     .accept(MediaType.APPLICATION_JSON),
@@ -199,7 +199,7 @@ class IssueControllerTest {
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .delete("/api/issues/$testUuid7")
+                    .delete("/api/projects/1/issues/$testUuid7")
                     .accept(MediaType.APPLICATION_JSON),
             ).andExpect(MockMvcResultMatchers.status().isNoContent)
 
@@ -217,7 +217,7 @@ class IssueControllerTest {
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .delete("/api/issues/non-existent")
+                    .delete("/api/projects/1/issues/non-existent")
                     .accept(MediaType.APPLICATION_JSON),
             ).andExpect(MockMvcResultMatchers.status().isNotFound)
 
@@ -244,14 +244,14 @@ class IssueControllerTest {
                 listId = 2,
             )
 
-        whenever(service.patch(patchRequest)).thenReturn(updatedResponse)
+        whenever(service.patch(1L, patchRequest)).thenReturn(updatedResponse)
         val requestJson = objectMapper.writeValueAsString(patchRequest)
 
         // Act & Assert
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .patch("/api/issues/$testUuid7")
+                    .patch("/api/projects/1/issues/$testUuid7")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson)
                     .accept(MediaType.APPLICATION_JSON),
@@ -263,7 +263,7 @@ class IssueControllerTest {
             .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("in progress"))
             .andExpect(MockMvcResultMatchers.jsonPath("$.listId").value(2))
 
-        verify(service).patch(patchRequest)
+        verify(service).patch(1L, patchRequest)
     }
 
     @Test
@@ -278,7 +278,7 @@ class IssueControllerTest {
                 uuid7 = testUuid7,
             )
 
-        whenever(service.patch(patchRequest)).thenThrow(
+        whenever(service.patch(1L, patchRequest)).thenThrow(
             ResponseStatusException(
                 HttpStatus.NOT_FOUND,
                 "Issue testUuid7 not found",
@@ -290,12 +290,12 @@ class IssueControllerTest {
         mockMvc
             .perform(
                 MockMvcRequestBuilders
-                    .patch("/api/issues/$testUuid7")
+                    .patch("/api/projects/1/issues/$testUuid7")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson)
                     .accept(MediaType.APPLICATION_JSON),
             ).andExpect(MockMvcResultMatchers.status().isNotFound)
 
-        verify(service).patch(patchRequest)
+        verify(service).patch(1L, patchRequest)
     }
 }

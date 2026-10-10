@@ -94,26 +94,26 @@ class IssueServiceTest {
     @Test
     fun `test get returns issue when found`() {
         // Arrange
-        whenever(repo.findByUuid7(testUuid7)).thenReturn(testIssue)
+        whenever(repo.findByProjectIdAndUuid7(1L, testUuid7)).thenReturn(listOf(testIssue))
 
         // Act
-        val result = service.get(testUuid7)
+        val result = service.get(1L, testUuid7)
 
         // Assert
         assertEquals(testIssueResponse, result)
-        verify(repo).findByUuid7(testUuid7)
+        verify(repo).findByProjectIdAndUuid7(1L, testUuid7)
     }
 
     @Test
     fun `test get throws exception when issue not found`() {
         // Arrange
         val issue: Issue? = null
-        whenever(repo.findByUuid7("non-existent")).thenReturn(issue)
+        whenever(repo.findByProjectIdAndUuid7(1L, "non-existent")).thenReturn(emptyList())
 
         // Act & Assert
         val exception =
             assertThrows(ResponseStatusException::class.java) {
-                service.get("non-existent")
+                service.get(1L, "non-existent")
             }
         assertEquals(HttpStatus.NOT_FOUND, exception.statusCode)
         assertTrue(exception.reason?.contains("Issue non-existent not found") == true)
@@ -220,15 +220,15 @@ class IssueServiceTest {
                 listId = 2,
             )
 
-        whenever(repo.findByUuid7(testUuid7)).thenReturn(issueToUpdate)
-        whenever(repo.save(any<Issue>())).thenAnswer { invocation -> invocation.getArgument<Issue>(0) }
+        whenever(repo.findByProjectIdAndUuid7(1L, testUuid7)).thenReturn(listOf(issueToUpdate))
+        whenever(repo.save(any<Issue>())).thenAnswer { invocation -> invocation.getArgument(0) as Issue }
 
         // Act
-        val result = service.patch(patchRequest)
+        val result = service.patch(1L, patchRequest)
 
         // Assert
         assertEquals(expectedResponse, result)
-        verify(repo).findByUuid7(testUuid7)
+        verify(repo).findByProjectIdAndUuid7(1L, testUuid7)
     }
 
     @Test
@@ -243,15 +243,15 @@ class IssueServiceTest {
                 uuid7 = testUuid7,
             )
 
-        whenever(repo.findByUuid7(testUuid7)).thenReturn(null)
+        whenever(repo.findByProjectIdAndUuid7(1L, testUuid7)).thenReturn(null)
 
         // Act & Assert
         val exception =
             assertThrows(ResponseStatusException::class.java) {
-                service.patch(patchRequest)
+                service.patch(1L, patchRequest)
             }
         assertEquals(HttpStatus.NOT_FOUND, exception.statusCode)
         assertTrue(exception.reason?.contains("not found") == true)
-        verify(repo).findByUuid7(testUuid7)
+        verify(repo).findByProjectIdAndUuid7(1L, testUuid7)
     }
 }

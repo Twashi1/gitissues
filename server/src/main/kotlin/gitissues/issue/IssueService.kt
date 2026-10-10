@@ -19,29 +19,49 @@ class IssueService(
 ) {
     private val log = LoggerFactory.getLogger(IssueService::class.java)
 
-    fun all(projectId: Long): List<IssueResponse> = repo.findAllByUuid7OrderByUuid7Desc(projectId).map { it.toResponse() }
+    fun all(projectId: Long, listId: Long? = null): List<IssueResponse> {
+        val issues = if (listId != null) {
+            repo.findAllByProjectIdAndListIdOrderByDisplayOrderAsc(projectId, listId)
+        } else {
+            repo.findAllByUuid7OrderByUuid7Desc(projectId)
+        }
+        return issues.map { it.toResponse() }
+    }
 
-    fun getByUuid7(projectId: Long, uuid7: String): List<IssueResponse> =
-        repo.findByProjectIdAndUuid7(projectId, uuid7).map { it.toResponse() }
+    fun allByProjectIdAndListId(projectId: Long, listId: Long): List<IssueResponse> {
+        return repo.findAllByProjectIdAndListIdOrderByDisplayOrderAsc(projectId, listId).map { it.toResponse() }
+    }
 
-    fun get(uuid7: String): IssueResponse {
-        val issue = repo.findByUuid7(uuid7)
-        if (issue == null || issue.uuid7 != uuid7) {
+    fun allByProjectId(projectId: Long): List<IssueResponse> {
+        return repo.findAllByUuid7OrderByUuid7Desc(projectId).map { it.toResponse() }
+    }
+
+    fun getByUuid7(projectId: Long, listId: Long, uuid7: String): IssueResponse {
+        val issue = repo.findByProjectIdAndListIdAndUuid7(projectId, listId, uuid7)?.firstOrNull() ?: run {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Issue $uuid7 not found in list $listId")
+        }
+        return issue.toResponse()
+    }
+
+    fun get(projectId: Long, listId: Long, uuid7: String): IssueResponse {
+        val issue = repo.findByProjectIdAndListIdAndUuid7(projectId, listId, uuid7)?.firstOrNull() ?: run {
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "Issue $uuid7 not found")
         }
         return issue.toResponse()
     }
 
-    fun create(projectId: Long, req: IssueCreateRequest): IssueResponse {
-        val uuid7 = req.uuid7
+    fun create(projectId: Long, listId: Long, req: IssueCreateRequest): IssueResponse {
+        val uuid7 = req.uuid7 ?: java.util.UUID.randomUUID().toString()
         val issue =
             Issue(
                 uuid7 = uuid7,
                 title = req.title,
                 description = req.description,
                 status = req.status,
-                listId = if (req.listId != null && req.listId > 0) req.listId else null,
+                listId = listId,
                 projectId = projectId,
+                // Set displayOrder to max+1 for this list, or 0 if issue has no list
+                displayOrder = (repo.findMaxDisplayOrderByListId(listId, projectId) ?: 0) + 1,
             )
         val saved = repo.save(issue)
         eventPublisher.publishEvent(IssueSavedEvent(saved))
@@ -49,10 +69,9 @@ class IssueService(
     }
 
     @Transactional
-    fun delete(uuid7: String) {
-        val issue = repo.findByUuid7(uuid7)
-        if (issue == null || issue.uuid7 != uuid7) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Issue $uuid7 not found")
+    fun delete(projectId: Long, listId: Long, uuid7: String) {
+        val issue = repo.findByProjectIdAndListIdAndUuid7(projectId, listId, uuid7)?.firstOrNull() ?: run {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Issue $uuid7 not found in list $listId")
         }
 
         repo.delete(issue)
@@ -60,12 +79,11 @@ class IssueService(
     }
 
     @Transactional
-    fun patch(req: IssuePatchRequest): IssueResponse {
+    fun patch(projectId: Long, listId: Long, req: IssuePatchRequest): IssueResponse {
         log.info("Patch request: {}", req)
 
-        val issue = repo.findByUuid7(req.uuid7)
-        if (issue == null || issue.uuid7 != req.uuid7) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Issue ${req.uuid7} not found")
+        val issue = repo.findByProjectIdAndListIdAndUuid7(projectId, listId, req.uuid7)?.first() ?: run {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Issue ${req.uuid7} not found in list $listId")
         }
 
         issue.title = req.title ?: issue.title

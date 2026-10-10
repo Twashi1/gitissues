@@ -5,5 +5,5 @@ data class IssueCreateRequest(
     val description: String,
     val status: String,
     val listId: Long?,
-    val uuid7: String,
+    val uuid7: String? = null,
 )

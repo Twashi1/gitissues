@@ -161,7 +161,7 @@ export default function ProjectPage() {
         description: description,
         status: status as IssueStatus,
         listId: listId
-      })
+      }, listId)
       // Replace temporary issue with real one
       setIssuesByListId(prev => {
         const listIssues = prev[listId] || []
