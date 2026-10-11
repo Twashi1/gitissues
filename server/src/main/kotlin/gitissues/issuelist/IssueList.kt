@@ -17,15 +17,12 @@ class IssueList(
     @Id
     @Column(name = "project_id", nullable = false)
     var projectId: Long = 0L,
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     var id: Long = 0L,
-
     @Column(nullable = false)
     var title: String,
-
     @Column(name = "created_at", nullable = false)
     var createdAt: LocalDateTime = LocalDateTime.now(),
 )

@@ -22,8 +22,6 @@ class Issue(
     var listId: Long? = null,
     @Column(name = "project_id")
     var projectId: Long = 0L,
-    @Column(name = "entity")
-    var entity: Int? = null,
     @Column(name = "display_order")
     var displayOrder: Int = 0,
 ) {

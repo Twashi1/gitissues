@@ -17,14 +17,20 @@ class IssueListService(
 
     fun all(projectId: Long): List<IssueListResponse> = repository.findAllByProjectIdOrderByIdDesc(projectId).map { it.toResponse() }
 
-    fun get(projectId: Long, id: Long): IssueListResponse =
+    fun get(
+        projectId: Long,
+        id: Long,
+    ): IssueListResponse =
         repository
             .findById(IssueListId(projectId, id))
             .orElseThrow { IllegalArgumentException("IssueList $id not found in project $projectId") }
             .toResponse()
 
     @Transactional
-    fun create(projectId: Long, req: IssueListCreateRequest): IssueListResponse {
+    fun create(
+        projectId: Long,
+        req: IssueListCreateRequest,
+    ): IssueListResponse {
         val maxId = repository.findMaxIdByProjectId(projectId)
         val nextId = if (maxId == null) 1L else maxId + 1
         val issueList =
@@ -37,7 +43,10 @@ class IssueListService(
     }
 
     @Transactional
-    fun delete(projectId: Long, id: Long) {
+    fun delete(
+        projectId: Long,
+        id: Long,
+    ) {
         val issueListId = IssueListId(projectId, id)
         if (!repository.existsById(issueListId)) {
             throw IllegalArgumentException("IssueList $id not found in project $projectId")
@@ -61,12 +70,13 @@ class IssueListService(
                 .orElseThrow { IllegalArgumentException("IssueList $id not found in project $projectId") }
 
         val updatedTitle = req.title ?: issueList.title
-        val updatedList = IssueList(
-            projectId = issueList.projectId,
-            id = issueList.id,
-            title = updatedTitle,
-            createdAt = issueList.createdAt
-        )
+        val updatedList =
+            IssueList(
+                projectId = issueList.projectId,
+                id = issueList.id,
+                title = updatedTitle,
+                createdAt = issueList.createdAt,
+            )
         return repository.save(updatedList).toResponse()
     }
 }

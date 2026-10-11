@@ -1,24 +1,24 @@
 package gitissues.issue
 
-import gitissues.dto.issue.IssueResponse
 import gitissues.native.GitIssues
-import gitissues.native.Schema
 import gitissues.native.NativeIssue
+import gitissues.native.Schema
 import gitissues.project.Project
+import jakarta.persistence.EntityManager
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import jakarta.persistence.EntityManager
-import jakarta.persistence.PersistenceContext
 import java.io.File
 
 @Service
 class IssueExportService(
     private val entityManager: EntityManager,
-    private val issueRepo: IssueRepository
+    private val issueRepo: IssueRepository,
 ) {
-
     @Transactional
-    fun exportIFF(projectId: Long, path: String): Boolean {
+    fun exportIFF(
+        projectId: Long,
+        path: String,
+    ): Boolean {
         // 1. Grab the project to verify it exists
         val project: Project = entityManager.find(Project::class.java, projectId) ?: return false
 

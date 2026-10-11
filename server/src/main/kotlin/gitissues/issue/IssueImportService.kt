@@ -69,8 +69,7 @@ class IssueImportService(
                     description = description,
                     status = status,
                     listId = listId,
-                    projectId = projectId,
-                    entity = null
+                    projectId = projectId
                 )
                 entityManager.persist(issue)
                 issueResponses.add(issue.toResponse())

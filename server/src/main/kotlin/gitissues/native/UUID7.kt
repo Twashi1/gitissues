@@ -59,15 +59,25 @@ object UUID7 {
             // Manual hex parsing: each pair of hex chars becomes one byte
             var high: Int = 0
             var low: Int = 0
-            if (hex[i] in '0'..'9') high = hex[i].code - '0'.code
-            else if (hex[i] in 'a'..'f') high = hex[i].code - 'a'.code + 10
-            else if (hex[i] in 'A'..'F') high = hex[i].code - 'A'.code + 10
-            else throw IllegalArgumentException("Invalid hex character at position $i")
+            if (hex[i] in '0'..'9') {
+                high = hex[i].code - '0'.code
+            } else if (hex[i] in 'a'..'f') {
+                high = hex[i].code - 'a'.code + 10
+            } else if (hex[i] in 'A'..'F') {
+                high = hex[i].code - 'A'.code + 10
+            } else {
+                throw IllegalArgumentException("Invalid hex character at position $i")
+            }
 
-            if (hex[i + 1] in '0'..'9') low = hex[i + 1].code - '0'.code
-            else if (hex[i + 1] in 'a'..'f') low = hex[i + 1].code - 'a'.code + 10
-            else if (hex[i + 1] in 'A'..'F') low = hex[i + 1].code - 'A'.code + 10
-            else throw IllegalArgumentException("Invalid hex character at position $i + 1")
+            if (hex[i + 1] in '0'..'9') {
+                low = hex[i + 1].code - '0'.code
+            } else if (hex[i + 1] in 'a'..'f') {
+                low = hex[i + 1].code - 'a'.code + 10
+            } else if (hex[i + 1] in 'A'..'F') {
+                low = hex[i + 1].code - 'A'.code + 10
+            } else {
+                throw IllegalArgumentException("Invalid hex character at position $i + 1")
+            }
 
             bytes[i / 2] = (high shl 4 or low and 0xFF).toByte()
         }
@@ -82,7 +92,8 @@ object UUID7 {
      * @param issue The issue to associate the UUID7 with
      * @return 16-byte array representing the newly generated UUID7
      */
-    fun generate(schema: Schema, issue: NativeIssue): ByteArray {
-        return schema.getOrCreateUUID(issue)
-    }
+    fun generate(
+        schema: Schema,
+        issue: NativeIssue,
+    ): ByteArray = schema.getOrCreateUUID(issue)
 }

@@ -7,19 +7,23 @@ import org.springframework.transaction.annotation.Transactional
 class ProjectService(
     private val repository: ProjectRepository,
 ) {
-
     fun all(): List<Project> = repository.findAll()
 
     fun search(name: String): List<Project> = repository.findByNameContainingIgnoreCase(name)
 
     @Transactional
-    fun create(name: String, exportDirectory: String): Project {
+    fun create(
+        name: String,
+        exportDirectory: String,
+    ): Project {
         val project = Project(name = name, exportDirectory = exportDirectory)
         return repository.save(project)
     }
 
-    fun get(id: Long): Project = repository.findById(id)
-        .orElseThrow { IllegalArgumentException("Project $id not found") }
+    fun get(id: Long): Project =
+        repository
+            .findById(id)
+            .orElseThrow { IllegalArgumentException("Project $id not found") }
 
     @Transactional
     fun delete(id: Long) {
@@ -30,7 +34,11 @@ class ProjectService(
     }
 
     @Transactional
-    fun update(id: Long, name: String, exportDirectory: String): Project {
+    fun update(
+        id: Long,
+        name: String,
+        exportDirectory: String,
+    ): Project {
         val project = get(id)
         project.name = name
         project.exportDirectory = exportDirectory

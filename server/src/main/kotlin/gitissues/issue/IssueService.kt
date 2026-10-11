@@ -19,39 +19,62 @@ class IssueService(
 ) {
     private val log = LoggerFactory.getLogger(IssueService::class.java)
 
-    fun all(projectId: Long, listId: Long? = null): List<IssueResponse> {
-        val issues = if (listId != null) {
-            repo.findAllByProjectIdAndListIdOrderByDisplayOrderAsc(projectId, listId)
-        } else {
-            repo.findAllByUuid7OrderByUuid7Desc(projectId)
-        }
+    fun all(
+        projectId: Long,
+        listId: Long? = null,
+    ): List<IssueResponse> {
+        val issues =
+            if (listId != null) {
+                repo.findAllByProjectIdAndListIdOrderByDisplayOrderAsc(projectId, listId)
+            } else {
+                repo.findAllByUuid7OrderByUuid7Desc(projectId)
+            }
         return issues.map { it.toResponse() }
     }
 
-    fun allByProjectIdAndListId(projectId: Long, listId: Long): List<IssueResponse> {
-        return repo.findAllByProjectIdAndListIdOrderByDisplayOrderAsc(projectId, listId).map { it.toResponse() }
-    }
-
-    fun allByProjectId(projectId: Long): List<IssueResponse> {
-        return repo.findAllByUuid7OrderByUuid7Desc(projectId).map { it.toResponse() }
-    }
-
-    fun getByUuid7(projectId: Long, listId: Long, uuid7: String): IssueResponse {
-        val issue = repo.findByProjectIdAndListIdAndUuid7(projectId, listId, uuid7)?.firstOrNull() ?: run {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Issue $uuid7 not found in list $listId")
+    fun allByProjectIdAndListId(
+        projectId: Long,
+        listId: Long,
+    ): List<IssueResponse> =
+        repo.findAllByProjectIdAndListIdOrderByDisplayOrderAsc(projectId, listId).map {
+            it.toResponse()
         }
+
+    fun allByProjectId(projectId: Long): List<IssueResponse> = repo.findAllByUuid7OrderByUuid7Desc(projectId).map { it.toResponse() }
+
+    fun getByUuid7(
+        projectId: Long,
+        listId: Long,
+        uuid7: String,
+    ): IssueResponse {
+        val issue =
+            repo.findByProjectIdAndListIdAndUuid7(projectId, listId, uuid7)?.firstOrNull() ?: run {
+                throw ResponseStatusException(HttpStatus.NOT_FOUND, "Issue $uuid7 not found in list $listId")
+            }
         return issue.toResponse()
     }
 
-    fun get(projectId: Long, listId: Long, uuid7: String): IssueResponse {
-        val issue = repo.findByProjectIdAndListIdAndUuid7(projectId, listId, uuid7)?.firstOrNull() ?: run {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Issue $uuid7 not found")
-        }
+    fun get(
+        projectId: Long,
+        listId: Long,
+        uuid7: String,
+    ): IssueResponse {
+        val issue =
+            repo.findByProjectIdAndListIdAndUuid7(projectId, listId, uuid7)?.firstOrNull() ?: run {
+                throw ResponseStatusException(HttpStatus.NOT_FOUND, "Issue $uuid7 not found")
+            }
         return issue.toResponse()
     }
 
-    fun create(projectId: Long, listId: Long, req: IssueCreateRequest): IssueResponse {
-        val uuid7 = req.uuid7 ?: java.util.UUID.randomUUID().toString()
+    fun create(
+        projectId: Long,
+        listId: Long,
+        req: IssueCreateRequest,
+    ): IssueResponse {
+        val uuid7 =
+            req.uuid7 ?: java.util.UUID
+                .randomUUID()
+                .toString()
         val issue =
             Issue(
                 uuid7 = uuid7,
@@ -69,22 +92,33 @@ class IssueService(
     }
 
     @Transactional
-    fun delete(projectId: Long, listId: Long, uuid7: String) {
-        val issue = repo.findByProjectIdAndListIdAndUuid7(projectId, listId, uuid7)?.firstOrNull() ?: run {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Issue $uuid7 not found in list $listId")
-        }
+    fun delete(
+        projectId: Long,
+        listId: Long,
+        uuid7: String,
+    ) {
+        val issue =
+            repo.findByProjectIdAndListIdAndUuid7(projectId, listId, uuid7)?.firstOrNull() ?: run {
+                throw ResponseStatusException(HttpStatus.NOT_FOUND, "Issue $uuid7 not found in list $listId")
+            }
 
         repo.delete(issue)
         eventPublisher.publishEvent(IssueDeletedEvent(uuid7, issue))
     }
 
     @Transactional
-    fun patch(projectId: Long, listId: Long, req: IssuePatchRequest): IssueResponse {
+    fun patch(
+        projectId: Long,
+        listId: Long,
+        uuid7: String,
+        req: IssuePatchRequest,
+    ): IssueResponse {
         log.info("Patch request: {}", req)
 
-        val issue = repo.findByProjectIdAndListIdAndUuid7(projectId, listId, req.uuid7)?.first() ?: run {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Issue ${req.uuid7} not found in list $listId")
-        }
+        val issue =
+            repo.findByProjectIdAndListIdAndUuid7(projectId, listId, uuid7)?.firstOrNull() ?: run {
+                throw ResponseStatusException(HttpStatus.NOT_FOUND, "Issue $uuid7 not found in list $listId")
+            }
 
         issue.title = req.title ?: issue.title
         issue.description = req.description ?: issue.description
