@@ -30,7 +30,7 @@ interface IssueRepository : JpaRepository<Issue, String> {
     ): Int?
 
     @Query(
-        "SELECT i FROM Issue i WHERE i.projectId = ?1 AND (i.listId = ?2 OR (?2 IS NULL AND i.listId IS NULL)) ORDER BY i.displayOrder ASC",
+        "SELECT i FROM Issue i WHERE i.projectId = ?1 AND (i.listId = ?2 OR (?2 IS NULL AND i.listId IS NULL)) ORDER BY i.displayOrder ASC, i.uuid7 ASC",
     )
     fun findAllByProjectIdAndListIdOrderByDisplayOrderAsc(
         projectId: Long,

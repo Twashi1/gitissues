@@ -120,13 +120,153 @@ class IssueService(
                 throw ResponseStatusException(HttpStatus.NOT_FOUND, "Issue $uuid7 not found in list $listId")
             }
 
+        val oldListId = issue.listId
+        val newListId = req.listId ?: oldListId
+        val listIsBeingChanged = req.listId != null && req.listId != oldListId
         issue.title = req.title ?: issue.title
         issue.description = req.description ?: issue.description
         issue.status = req.status ?: issue.status
-        issue.listId = req.listId ?: issue.listId
+        issue.listId = newListId
+        // If the list is being changed, set displayOrder to max+1 for the new list.
+        issue.displayOrder = if (listIsBeingChanged) {
+            (repo.findMaxDisplayOrderByListId(projectId, newListId) ?: 0) + 1
+        } else {
+            issue.displayOrder
+        }
 
         val saved = repo.save(issue)
         eventPublisher.publishEvent(IssueSavedEvent(saved))
         return saved.toResponse()
+    }
+
+    /** Reorder displayOrders in a list to be sequential (1, 2, 3, ...).
+     *  Useful when displayOrders have become fragmented or duplicated.
+     *
+     *  If orderAfter is provided (non-null), only issues with displayOrder >= orderAfter
+     *  will be re-assigned sequentially starting from orderAfter + 1;
+     *  issues with displayOrder < orderAfter keep their current displayOrder.
+     *  This creates a gap exactly at orderAfter (no issue has displayOrder == orderAfter
+     *  after the change), which serves to create space for a later patch request.
+     *  If orderAfter is null, all displayOrders are re-assigned sequentially (current behavior).
+     */
+    @Transactional
+    fun reorderDisplayOrders(projectId: Long, listId: Long, orderAfter: Integer?): Unit {
+        val issues = repo.findAllByProjectIdAndListIdOrderByDisplayOrderAsc(projectId, listId)
+        if (orderAfter == null) {
+            // Current behavior: reassign all displayOrders sequentially
+            for ((index, issue) in issues.withIndex()) {
+                issue.displayOrder = index + 1
+            }
+        } else {
+            // Only reassign issues with displayOrder >= orderAfter
+            // Keep issues with displayOrder < orderAfter as-is
+            // Reassign displayOrders sequentially starting from orderAfter + 1
+            // so that a gap is created exactly at orderAfter
+            val orderAfterInt = orderAfter!!.toInt() - 1
+            val issuesToReassign = issues.filter { it.displayOrder > orderAfterInt }
+            var currentOrder = orderAfterInt + 2
+            for (issue in issuesToReassign) {
+                issue.displayOrder = currentOrder
+                currentOrder += 1
+            }
+        }
+        repo.saveAll(issues)
+    }
+
+    /** Reorder an issue within a list by moving it from sourceIndex to targetIndex.
+     *  This reassigns all displayOrders sequentially (1, 2, 3, ...) after the move.
+     *
+     *  @param projectId The ID of the project
+     *  @param listId The ID of the issue list
+     *  @param sourceIndex The current index of the issue to move (0-based)
+     *  @param targetIndex The target index to move the issue to (0-based)
+     */
+    @Transactional
+    fun reorderIssueWithinList(projectId: Long, listId: Long, sourceIndex: Int, targetIndex: Int): Unit {
+        // Validate indices
+        val issues = repo.findAllByProjectIdAndListIdOrderByDisplayOrderAsc(projectId, listId)
+        if (sourceIndex < 0 || sourceIndex >= issues.size) {
+            throw IllegalArgumentException("Source index out of bounds: $sourceIndex")
+        }
+        if (targetIndex < 0 || targetIndex > issues.size) {
+            throw IllegalArgumentException("Target index out of bounds: $targetIndex")
+        }
+
+        // Convert to mutable list for easier manipulation
+        val mutableIssues = issues.toMutableList()
+
+        // targetIndex is the insertion index after the source item has been removed.
+        val issueToMove = mutableIssues.removeAt(sourceIndex)
+        val insertionIndex = targetIndex.coerceIn(0, mutableIssues.size)
+        mutableIssues.add(insertionIndex, issueToMove)
+
+        // Reassign displayOrders sequentially (1, 2, 3, ...)
+        for ((index, issue) in mutableIssues.withIndex()) {
+            issue.displayOrder = index + 1
+        }
+
+        // Save all issues
+        repo.saveAll(mutableIssues)
+    }
+
+    /** Move an issue from one list to another by specifying the source and target indices.
+     *  This reassigns all displayOrders sequentially (1, 2, 3, ...) in both lists after the move.
+     *
+     *  @param projectId The ID of the project
+     *  @param sourceListId The ID of the source issue list
+     *  @param targetListId The ID of the target issue list
+     *  @param sourceIndex The current index of the issue to move in the source list (0-based)
+     *  @param targetIndex The target index to move the issue to in the target list (0-based)
+     */
+    @Transactional
+    fun moveIssueToList(
+        projectId: Long,
+        sourceListId: Long,
+        targetListId: Long,
+        sourceIndex: Int,
+        targetIndex: Int
+    ): Unit {
+        // Validate that source and target lists are different
+        if (sourceListId == targetListId) {
+            throw IllegalArgumentException("Source and target lists must be different")
+        }
+
+        // Load issues from both lists
+        val sourceIssues = repo.findAllByProjectIdAndListIdOrderByDisplayOrderAsc(projectId, sourceListId)
+        val targetIssues = repo.findAllByProjectIdAndListIdOrderByDisplayOrderAsc(projectId, targetListId)
+
+        // Validate indices
+        if (sourceIndex < 0 || sourceIndex >= sourceIssues.size) {
+            throw IllegalArgumentException("Source index out of bounds: $sourceIndex")
+        }
+        if (targetIndex < 0 || targetIndex > targetIssues.size) {
+            throw IllegalArgumentException("Target index out of bounds: $targetIndex")
+        }
+
+        // Convert to mutable lists for easier manipulation
+        val mutableSourceIssues = sourceIssues.toMutableList()
+        val mutableTargetIssues = targetIssues.toMutableList()
+
+        // Remove the issue from the source list
+        val issueToMove = mutableSourceIssues.removeAt(sourceIndex)
+        // Update the issue's listId to the target list
+        issueToMove.listId = targetListId
+
+        // Insert the issue into the target list at the target index
+        mutableTargetIssues.add(targetIndex, issueToMove)
+
+        // Reassign displayOrders sequentially in the source list (1, 2, 3, ...)
+        for ((index, issue) in mutableSourceIssues.withIndex()) {
+            issue.displayOrder = index + 1
+        }
+
+        // Reassign displayOrders sequentially in the target list (1, 2, 3, ...)
+        for ((index, issue) in mutableTargetIssues.withIndex()) {
+            issue.displayOrder = index + 1
+        }
+
+        // Save all issues from both lists
+        repo.saveAll(mutableSourceIssues)
+        repo.saveAll(mutableTargetIssues)
     }
 }
